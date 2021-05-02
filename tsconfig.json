@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2019",
+    "module": "none",
+    "lib": ["ESNext", "DOM"],
+    "outDir": "dist"
+  }
+}
