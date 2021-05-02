@@ -54,20 +54,29 @@
         elem.append(...contents);
         return elem;
     };
+    const text = (text) => document.createTextNode(text);
+    const br = () => document.createElement("br");
     const a = (link, text = link) => {
         const anchor = document.createElement("a");
         anchor.href = link;
         anchor.textContent = text;
+        anchor.target = "_blank";
+        anchor.referrerPolicy = "no-referrer";
         return anchor;
     };
     const p = (text) => {
         const par = document.createElement("p");
+        par.style.marginBottom = "0";
         par.innerText = text;
         return par;
     };
-    const li = (text) => {
+    const li = (content) => {
         const item = document.createElement("li");
-        item.textContent = text;
+        if (typeof content === "string") {
+            item.textContent = content;
+            return item;
+        }
+        item.append(content);
         return item;
     };
     const ul = ({ header, items }) => {
@@ -116,31 +125,29 @@
     };
     const createEditStatsItem = ({ link }, suggestions) => {
         const { approved, rejected, total, ratio: { approvedToRejected, ofApproved, ofRejected }, } = getSuggestionTotals(suggestions);
-        if (!total) {
-            const par = p(`Tag wiki/excerpt edits are not returned. `);
-            par.append(a(`${link}?tab=activity`, "Activity tab"));
-            return createItem(par);
-        }
-        return createItem(ul({
+        const itemParams = {
             header: "Author Stats",
-            items: [
-                `Approved: ${approved} (${toPercent(ofApproved)})`,
-                `Rejected: ${rejected} (${toPercent(ofRejected)})`,
-                `Ratio: ${approvedToRejected}`,
-                `Of total: ${total}`,
-            ],
-        }));
+            items: [],
+        };
+        if (!total) {
+            const infoPar = p(`Tag wiki/excerpt edits are not returned.`);
+            infoPar.append(br(), text(`See their `), a(`${link}?tab=activity`, "activity tab"));
+            itemParams.items.push(infoPar);
+            return createItem(ul(itemParams));
+        }
+        itemParams.items.push(`Approved: ${approved} (${toPercent(ofApproved)})`, `Rejected: ${rejected} (${toPercent(ofRejected)})`, `Ratio: ${approvedToRejected}`, `Of total: ${total}`);
+        return createItem(ul(itemParams));
     };
     const sidebar = document.querySelector(".js-actions-sidebar");
     if (!sidebar)
         return;
     const dialog = document.createElement("div");
-    dialog.classList.add("s-sidebarwidget");
+    dialog.classList.add("s-sidebarwidget", "ml24", "mt24");
     const header = document.createElement("div");
     header.classList.add("s-sidebarwidget--header");
     header.textContent = "Extra Info";
     const itemWrap = document.createElement("div");
-    itemWrap.classList.add("grid");
+    itemWrap.classList.add("grid", "fd-column");
     const authorId = getEditAuthorId();
     if (!authorId)
         return;
@@ -148,11 +155,11 @@
         getUserInfo(authorId),
         getSuggestionsUserStats(authorId),
     ]);
+    if (!editAuthorInfo)
+        return;
     const items = [];
-    if (editAuthorInfo)
-        items.push(createEditAuthorItem(editAuthorInfo));
-    if (editAuthorStats)
-        items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
+    items.push(createEditAuthorItem(editAuthorInfo));
+    items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
     itemWrap.append(...items);
     dialog.append(header, itemWrap);
     editAuthorInfo && sidebar.append(dialog);
