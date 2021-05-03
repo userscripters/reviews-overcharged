@@ -81,7 +81,12 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
         done: ".js-reviews-done",
         daily: ".js-reviews-per-day",
       },
-      titleLine: ".s-page-title--description",
+      title: {
+        description: ".s-page-title--description",
+        learnMore: ".js-show-modal-from-nav.s-link",
+        title: ".s-page-title--text",
+        header: ".s-page-title--header",
+      },
     },
   };
 
@@ -149,6 +154,12 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     const [, userId] = href.match(/users\/(\d+)/) || [];
     if (!userId) return null;
     return userId;
+  };
+
+  const createGridCell = () => {
+    const elem = document.createElement("div");
+    elem.classList.add("grid--cell");
+    return elem;
   };
 
   const createItem = (...contents: Node[]) => {
@@ -250,7 +261,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return stats;
   };
 
-  const createEditStatsItem = (
+  const createEditorStatsItem = (
     { link }: UserInfo,
     suggestions: SuggestedEditInfo[]
   ) => {
@@ -282,8 +293,8 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     itemParams.items.push(
       `Approved: ${approved} (${toPercent(ofApproved)})`,
       `Rejected: ${rejected} (${toPercent(ofRejected)})`,
-      `Ratio: ${approvedToRejected}`,
-      `Of total: ${total}`
+      `Of total: ${total}`,
+      `Ratio: ${approvedToRejected}`
     );
 
     return createItem(ul(itemParams));
@@ -303,8 +314,33 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return true;
   };
 
-  const removeTitleLine = ({ selectors: { titleLine } }: typeof config) =>
-    document.querySelector(titleLine)?.remove();
+  const removeTitleLines = (cnf: typeof config, wrapper?: Element) =>
+    (wrapper || document)
+      .querySelectorAll(cnf.selectors.title.description)
+      .forEach((elem) => elem.remove());
+
+  const optimizePageTitle = (cnf: typeof config) => {
+    const titleWrap = document.querySelector(cnf.selectors.title.title);
+    if (!titleWrap) return false;
+
+    titleWrap.classList.add("grid");
+
+    const header = document.querySelector(cnf.selectors.title.header);
+
+    const titleCell = createGridCell();
+    titleCell.classList.add("ml12");
+    if (header) titleCell.append(header);
+
+    const learnMoreBtn = titleWrap.querySelector(cnf.selectors.title.learnMore);
+
+    const linkCell = titleCell.cloneNode() as HTMLDivElement;
+    if (learnMoreBtn) linkCell.append(learnMoreBtn);
+
+    removeTitleLines(cnf, titleWrap);
+
+    titleWrap.append(titleCell, linkCell);
+    return true;
+  };
 
   const moveProgressToTabs = () => {
     const actions = selectActions();
@@ -363,7 +399,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     const items: HTMLDivElement[] = [];
 
     items.push(createEditAuthorItem(editAuthorInfo));
-    items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
+    items.push(createEditorStatsItem(editAuthorInfo, editAuthorStats));
 
     itemWrap.append(...items);
 
@@ -376,5 +412,6 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
   moveProgressToTabs();
   addStatsSidebar();
-  removeTitleLine(config);
+
+  optimizePageTitle(config);
 })();

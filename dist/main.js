@@ -9,7 +9,12 @@
                 done: ".js-reviews-done",
                 daily: ".js-reviews-per-day",
             },
-            titleLine: ".s-page-title--description",
+            title: {
+                description: ".s-page-title--description",
+                learnMore: ".js-show-modal-from-nav.s-link",
+                title: ".s-page-title--text",
+                header: ".s-page-title--header",
+            },
         },
     };
     const selectActions = () => Array.from(document.querySelectorAll(config.selectors.actions));
@@ -58,6 +63,11 @@
         if (!userId)
             return null;
         return userId;
+    };
+    const createGridCell = () => {
+        const elem = document.createElement("div");
+        elem.classList.add("grid--cell");
+        return elem;
     };
     const createItem = (...contents) => {
         const elem = document.createElement("div");
@@ -136,7 +146,7 @@
         });
         return stats;
     };
-    const createEditStatsItem = ({ link }, suggestions) => {
+    const createEditorStatsItem = ({ link }, suggestions) => {
         const { approved, rejected, total, ratio: { approvedToRejected, ofApproved, ofRejected }, } = getSuggestionTotals(suggestions);
         const itemParams = {
             header: "Author Stats",
@@ -148,7 +158,7 @@
             itemParams.items.push(infoPar);
             return createItem(ul(itemParams));
         }
-        itemParams.items.push(`Approved: ${approved} (${toPercent(ofApproved)})`, `Rejected: ${rejected} (${toPercent(ofRejected)})`, `Ratio: ${approvedToRejected}`, `Of total: ${total}`);
+        itemParams.items.push(`Approved: ${approved} (${toPercent(ofApproved)})`, `Rejected: ${rejected} (${toPercent(ofRejected)})`, `Of total: ${total}`, `Ratio: ${approvedToRejected}`);
         return createItem(ul(itemParams));
     };
     const trimNumericString = (text) => text.replace(/\D/g, "");
@@ -164,7 +174,27 @@
         wrapper.remove();
         return true;
     };
-    const removeTitleLine = ({ selectors: { titleLine } }) => { var _a; return (_a = document.querySelector(titleLine)) === null || _a === void 0 ? void 0 : _a.remove(); };
+    const removeTitleLines = (cnf, wrapper) => (wrapper || document)
+        .querySelectorAll(cnf.selectors.title.description)
+        .forEach((elem) => elem.remove());
+    const optimizePageTitle = (cnf) => {
+        const titleWrap = document.querySelector(cnf.selectors.title.title);
+        if (!titleWrap)
+            return false;
+        titleWrap.classList.add("grid");
+        const header = document.querySelector(cnf.selectors.title.header);
+        const titleCell = createGridCell();
+        titleCell.classList.add("ml12");
+        if (header)
+            titleCell.append(header);
+        const learnMoreBtn = titleWrap.querySelector(cnf.selectors.title.learnMore);
+        const linkCell = titleCell.cloneNode();
+        if (learnMoreBtn)
+            linkCell.append(learnMoreBtn);
+        removeTitleLines(cnf, titleWrap);
+        titleWrap.append(titleCell, linkCell);
+        return true;
+    };
     const moveProgressToTabs = () => {
         const actions = selectActions();
         const action = actions.find(({ href }) => /\/review\/suggested-edits/.test(href));
@@ -206,7 +236,7 @@
             return false;
         const items = [];
         items.push(createEditAuthorItem(editAuthorInfo));
-        items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
+        items.push(createEditorStatsItem(editAuthorInfo, editAuthorStats));
         itemWrap.append(...items);
         dialog.append(header, itemWrap);
         editAuthorInfo && sidebar.append(dialog);
@@ -214,5 +244,5 @@
     };
     moveProgressToTabs();
     addStatsSidebar();
-    removeTitleLine(config);
+    optimizePageTitle(config);
 })();
