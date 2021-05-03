@@ -208,11 +208,18 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return list;
   };
 
-  const createEditAuthorItem = ({ display_name, reputation }: UserInfo) => {
+  const createEditAuthorItem = ({
+    display_name,
+    reputation,
+    link,
+  }: UserInfo) => {
+    const namePar = p(`Name: `);
+    namePar.append(a(link, display_name));
+
     return createItem(
       ul({
         header: "Edit Author",
-        items: [`Name: ${display_name}`, `Reputation: ${reputation}`],
+        items: [namePar, `Reputation: ${reputation}`],
       })
     );
   };

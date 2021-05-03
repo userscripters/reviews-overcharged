@@ -104,10 +104,12 @@
         list.append(...listItems);
         return list;
     };
-    const createEditAuthorItem = ({ display_name, reputation }) => {
+    const createEditAuthorItem = ({ display_name, reputation, link, }) => {
+        const namePar = p(`Name: `);
+        namePar.append(a(link, display_name));
         return createItem(ul({
             header: "Edit Author",
-            items: [`Name: ${display_name}`, `Reputation: ${reputation}`],
+            items: [namePar, `Reputation: ${reputation}`],
         }));
     };
     const toPercent = (ratio) => `${Math.trunc(ratio * 100)}%`;
