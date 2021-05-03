@@ -168,6 +168,8 @@
         const action = actions.find(({ href }) => /\/review\/suggested-edits/.test(href));
         const dailyElem = document.querySelector(config.selectors.reviews.daily);
         const reviewedElem = document.querySelector(config.selectors.reviews.done);
+        if (!dailyElem || !reviewedElem)
+            return false;
         const daily = trimNumericString(dailyElem.textContent || "0");
         const reviewed = trimNumericString(reviewedElem.textContent || "0");
         const ratio = +reviewed / +daily;
@@ -177,7 +179,7 @@
         const { style } = action;
         style.background = `linear-gradient(90deg, var(--theme-primary-color) ${percentDone}, var(--black-075) ${percentDone})`;
         style.color = `var(--black-600)`;
-        action.textContent += ` (${reviewed}/${daily}%)`;
+        action.textContent += ` (${reviewed}/${daily})`;
         return removeProgressBar(dailyElem);
     };
     const addStatsSidebar = async () => {
