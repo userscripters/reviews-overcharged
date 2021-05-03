@@ -74,6 +74,22 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
   const API_VER = 2.2;
 
+  const config = {
+    selectors: {
+      actions: ".s-page-title--actions a",
+      reviews: {
+        done: ".js-reviews-done",
+        daily: ".js-reviews-per-day",
+      },
+      titleLine: ".s-page-title--description",
+    },
+  };
+
+  const selectActions = () =>
+    Array.from(
+      document.querySelectorAll<HTMLAnchorElement>(config.selectors.actions)
+    );
+
   const getUserInfo = async (id: string, site = "stackoverflow") => {
     const url = new URL(`${API_BASE}/${API_VER}/users/${id}`);
     url.search = new URLSearchParams({ site }).toString();
@@ -201,7 +217,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     );
   };
 
-  const toPercent = (ratio: number) => `${ratio * 100}%`;
+  const toPercent = (ratio: number) => `${Math.trunc(ratio * 100)}%`;
 
   const getSuggestionTotals = (suggestions: SuggestedEditInfo[]) => {
     const stats = {
@@ -210,7 +226,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
         return {
           ofApproved: approved / total,
           ofRejected: rejected / total,
-          approvedToRejected: approved / rejected,
+          approvedToRejected: approved / (rejected === 0 ? 1 : rejected),
         };
       },
       approved: 0,
@@ -266,39 +282,90 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return createItem(ul(itemParams));
   };
 
-  const sidebar = document.querySelector(".js-actions-sidebar");
+  const trimNumericString = (text: string) => text.replace(/\D/g, "");
 
-  if (!sidebar) return;
+  const goParentUp = (element: Element | null, times = 1): Element | null => {
+    if (times === 0 || !element) return element;
+    return goParentUp(element.parentElement, times - 1);
+  };
 
-  const dialog = document.createElement("div");
-  dialog.classList.add("s-sidebarwidget", "ml24", "mt24");
+  const removeProgressBar = (reviewStatsElement: Element) => {
+    const wrapper = goParentUp(reviewStatsElement, 3);
+    if (!wrapper) return false;
+    wrapper.remove();
+    return true;
+  };
 
-  const header = document.createElement("div");
-  header.classList.add("s-sidebarwidget--header");
-  header.textContent = "Extra Info";
+  const removeTitleLine = ({ selectors: { titleLine } }: typeof config) =>
+    document.querySelector(titleLine)?.remove();
 
-  const itemWrap = document.createElement("div");
-  itemWrap.classList.add("grid", "fd-column");
+  const moveProgressToTabs = () => {
+    const actions = selectActions();
+    const action = actions.find(({ href }) =>
+      /\/review\/suggested-edits/.test(href)
+    );
 
-  const authorId = getEditAuthorId();
+    const dailyElem = document.querySelector(config.selectors.reviews.daily)!;
+    const reviewedElem = document.querySelector(config.selectors.reviews.done)!;
 
-  if (!authorId) return;
+    const daily = trimNumericString(dailyElem!.textContent || "0");
+    const reviewed = trimNumericString(reviewedElem!.textContent || "0");
 
-  const [editAuthorInfo, editAuthorStats] = await Promise.all([
-    getUserInfo(authorId),
-    getSuggestionsUserStats(authorId),
-  ]);
+    const ratio = +reviewed / +daily;
+    const percentDone = toPercent(ratio);
 
-  if (!editAuthorInfo) return;
+    if (!action) return false;
+    const { style } = action;
 
-  const items: HTMLDivElement[] = [];
+    style.background = `linear-gradient(90deg, var(--theme-primary-color) ${percentDone}, var(--black-075) ${percentDone})`;
+    style.color = `var(--black-600)`;
 
-  items.push(createEditAuthorItem(editAuthorInfo));
-  items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
+    action.textContent += ` (${reviewed}/${daily}%)`;
 
-  itemWrap.append(...items);
+    return removeProgressBar(dailyElem);
+  };
 
-  dialog.append(header, itemWrap);
+  const addStatsSidebar = async () => {
+    const sidebar = document.querySelector(".js-actions-sidebar");
 
-  editAuthorInfo && sidebar.append(dialog);
+    if (!sidebar) return false;
+
+    const dialog = document.createElement("div");
+    dialog.classList.add("s-sidebarwidget", "ml24", "mt24");
+
+    const header = document.createElement("div");
+    header.classList.add("s-sidebarwidget--header");
+    header.textContent = "Extra Info";
+
+    const itemWrap = document.createElement("div");
+    itemWrap.classList.add("grid", "fd-column");
+
+    const authorId = getEditAuthorId();
+
+    if (!authorId) return false;
+
+    const [editAuthorInfo, editAuthorStats] = await Promise.all([
+      getUserInfo(authorId),
+      getSuggestionsUserStats(authorId),
+    ]);
+
+    if (!editAuthorInfo) return false;
+
+    const items: HTMLDivElement[] = [];
+
+    items.push(createEditAuthorItem(editAuthorInfo));
+    items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
+
+    itemWrap.append(...items);
+
+    dialog.append(header, itemWrap);
+
+    editAuthorInfo && sidebar.append(dialog);
+
+    return true;
+  };
+
+  moveProgressToTabs();
+  addStatsSidebar();
+  removeTitleLine(config);
 })();

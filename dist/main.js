@@ -2,6 +2,17 @@
 (async () => {
     const API_BASE = "https://api.stackexchange.com";
     const API_VER = 2.2;
+    const config = {
+        selectors: {
+            actions: ".s-page-title--actions a",
+            reviews: {
+                done: ".js-reviews-done",
+                daily: ".js-reviews-per-day",
+            },
+            titleLine: ".s-page-title--description",
+        },
+    };
+    const selectActions = () => Array.from(document.querySelectorAll(config.selectors.actions));
     const getUserInfo = async (id, site = "stackoverflow") => {
         const url = new URL(`${API_BASE}/${API_VER}/users/${id}`);
         url.search = new URLSearchParams({ site }).toString();
@@ -99,7 +110,7 @@
             items: [`Name: ${display_name}`, `Reputation: ${reputation}`],
         }));
     };
-    const toPercent = (ratio) => `${ratio * 100}%`;
+    const toPercent = (ratio) => `${Math.trunc(ratio * 100)}%`;
     const getSuggestionTotals = (suggestions) => {
         const stats = {
             get ratio() {
@@ -107,7 +118,7 @@
                 return {
                     ofApproved: approved / total,
                     ofRejected: rejected / total,
-                    approvedToRejected: approved / rejected,
+                    approvedToRejected: approved / (rejected === 0 ? 1 : rejected),
                 };
             },
             approved: 0,
@@ -138,29 +149,66 @@
         itemParams.items.push(`Approved: ${approved} (${toPercent(ofApproved)})`, `Rejected: ${rejected} (${toPercent(ofRejected)})`, `Ratio: ${approvedToRejected}`, `Of total: ${total}`);
         return createItem(ul(itemParams));
     };
-    const sidebar = document.querySelector(".js-actions-sidebar");
-    if (!sidebar)
-        return;
-    const dialog = document.createElement("div");
-    dialog.classList.add("s-sidebarwidget", "ml24", "mt24");
-    const header = document.createElement("div");
-    header.classList.add("s-sidebarwidget--header");
-    header.textContent = "Extra Info";
-    const itemWrap = document.createElement("div");
-    itemWrap.classList.add("grid", "fd-column");
-    const authorId = getEditAuthorId();
-    if (!authorId)
-        return;
-    const [editAuthorInfo, editAuthorStats] = await Promise.all([
-        getUserInfo(authorId),
-        getSuggestionsUserStats(authorId),
-    ]);
-    if (!editAuthorInfo)
-        return;
-    const items = [];
-    items.push(createEditAuthorItem(editAuthorInfo));
-    items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
-    itemWrap.append(...items);
-    dialog.append(header, itemWrap);
-    editAuthorInfo && sidebar.append(dialog);
+    const trimNumericString = (text) => text.replace(/\D/g, "");
+    const goParentUp = (element, times = 1) => {
+        if (times === 0 || !element)
+            return element;
+        return goParentUp(element.parentElement, times - 1);
+    };
+    const removeProgressBar = (reviewStatsElement) => {
+        const wrapper = goParentUp(reviewStatsElement, 3);
+        if (!wrapper)
+            return false;
+        wrapper.remove();
+        return true;
+    };
+    const removeTitleLine = ({ selectors: { titleLine } }) => { var _a; return (_a = document.querySelector(titleLine)) === null || _a === void 0 ? void 0 : _a.remove(); };
+    const moveProgressToTabs = () => {
+        const actions = selectActions();
+        const action = actions.find(({ href }) => /\/review\/suggested-edits/.test(href));
+        const dailyElem = document.querySelector(config.selectors.reviews.daily);
+        const reviewedElem = document.querySelector(config.selectors.reviews.done);
+        const daily = trimNumericString(dailyElem.textContent || "0");
+        const reviewed = trimNumericString(reviewedElem.textContent || "0");
+        const ratio = +reviewed / +daily;
+        const percentDone = toPercent(ratio);
+        if (!action)
+            return false;
+        const { style } = action;
+        style.background = `linear-gradient(90deg, var(--theme-primary-color) ${percentDone}, var(--black-075) ${percentDone})`;
+        style.color = `var(--black-600)`;
+        action.textContent += ` (${reviewed}/${daily}%)`;
+        return removeProgressBar(dailyElem);
+    };
+    const addStatsSidebar = async () => {
+        const sidebar = document.querySelector(".js-actions-sidebar");
+        if (!sidebar)
+            return false;
+        const dialog = document.createElement("div");
+        dialog.classList.add("s-sidebarwidget", "ml24", "mt24");
+        const header = document.createElement("div");
+        header.classList.add("s-sidebarwidget--header");
+        header.textContent = "Extra Info";
+        const itemWrap = document.createElement("div");
+        itemWrap.classList.add("grid", "fd-column");
+        const authorId = getEditAuthorId();
+        if (!authorId)
+            return false;
+        const [editAuthorInfo, editAuthorStats] = await Promise.all([
+            getUserInfo(authorId),
+            getSuggestionsUserStats(authorId),
+        ]);
+        if (!editAuthorInfo)
+            return false;
+        const items = [];
+        items.push(createEditAuthorItem(editAuthorInfo));
+        items.push(createEditStatsItem(editAuthorInfo, editAuthorStats));
+        itemWrap.append(...items);
+        dialog.append(header, itemWrap);
+        editAuthorInfo && sidebar.append(dialog);
+        return true;
+    };
+    moveProgressToTabs();
+    addStatsSidebar();
+    removeTitleLine(config);
 })();
