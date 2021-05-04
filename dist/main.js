@@ -15,7 +15,19 @@
                 title: ".s-page-title--text",
                 header: ".s-page-title--header",
             },
+            info: {
+                post: {
+                    wrapper: ".postcell span",
+                },
+                editor: {
+                    card: "a.s-user-card--link",
+                },
+            },
         },
+    };
+    const handleMatchFailure = (selector, returnValue = null) => {
+        console.debug(`Couldn't find the element with selector: ${selector}`);
+        return returnValue;
     };
     const selectActions = () => Array.from(document.querySelectorAll(config.selectors.actions));
     const getUserInfo = async (id, site = "stackoverflow") => {
@@ -48,16 +60,18 @@
         return items;
     };
     const getEditAuthorId = () => {
-        const spans = document.querySelectorAll(".postcell span");
+        const postWrapSelector = config.selectors.info.post.wrapper;
+        const spans = document.querySelectorAll(postWrapSelector);
         if (!spans.length)
-            return null;
+            return handleMatchFailure(postWrapSelector);
         const userSpan = Array.from(spans).find(({ textContent }) => /proposed/i.test(textContent || ""));
         if (!userSpan)
             return null;
+        const cardSelector = config.selectors.info.editor.card;
         const { parentElement } = userSpan;
-        const link = parentElement.querySelector("a.s-user-card--link");
+        const link = parentElement.querySelector(cardSelector);
         if (!link)
-            return null;
+            return handleMatchFailure(cardSelector);
         const { href } = link;
         const [, userId] = href.match(/users\/(\d+)/) || [];
         if (!userId)
@@ -178,9 +192,10 @@
         .querySelectorAll(cnf.selectors.title.description)
         .forEach((elem) => elem.remove());
     const optimizePageTitle = (cnf) => {
-        const titleWrap = document.querySelector(cnf.selectors.title.title);
+        const titleSelector = cnf.selectors.title.title;
+        const titleWrap = document.querySelector(titleSelector);
         if (!titleWrap)
-            return false;
+            return handleMatchFailure(titleSelector, false);
         titleWrap.classList.add("grid");
         const header = document.querySelector(cnf.selectors.title.header);
         const titleCell = createGridCell();

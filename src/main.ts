@@ -87,7 +87,23 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
         title: ".s-page-title--text",
         header: ".s-page-title--header",
       },
+      info: {
+        post: {
+          wrapper: ".postcell span",
+        },
+        editor: {
+          card: "a.s-user-card--link",
+        },
+      },
     },
+  };
+
+  const handleMatchFailure = (
+    selector: string,
+    returnValue: null | false = null
+  ) => {
+    console.debug(`Couldn't find the element with selector: ${selector}`);
+    return returnValue;
   };
 
   const selectActions = () =>
@@ -139,20 +155,26 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
   };
 
   const getEditAuthorId = () => {
-    const spans = document.querySelectorAll(".postcell span");
-    if (!spans.length) return null;
+    const postWrapSelector = config.selectors.info.post.wrapper;
+
+    const spans = document.querySelectorAll(postWrapSelector);
+    if (!spans.length) return handleMatchFailure(postWrapSelector);
+
     const userSpan = Array.from(spans).find(({ textContent }) =>
       /proposed/i.test(textContent || "")
     );
     if (!userSpan) return null;
+
+    const cardSelector = config.selectors.info.editor.card;
+
     const { parentElement } = userSpan;
-    const link = parentElement!.querySelector<HTMLAnchorElement>(
-      "a.s-user-card--link"
-    );
-    if (!link) return null;
+    const link = parentElement!.querySelector<HTMLAnchorElement>(cardSelector);
+    if (!link) return handleMatchFailure(cardSelector);
+
     const { href } = link;
     const [, userId] = href.match(/users\/(\d+)/) || [];
     if (!userId) return null;
+
     return userId;
   };
 
@@ -320,8 +342,10 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
       .forEach((elem) => elem.remove());
 
   const optimizePageTitle = (cnf: typeof config) => {
-    const titleWrap = document.querySelector(cnf.selectors.title.title);
-    if (!titleWrap) return false;
+    const titleSelector = cnf.selectors.title.title;
+
+    const titleWrap = document.querySelector(titleSelector);
+    if (!titleWrap) return handleMatchFailure(titleSelector, false);
 
     titleWrap.classList.add("grid");
 
