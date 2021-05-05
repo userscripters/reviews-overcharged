@@ -81,6 +81,10 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
         done: ".js-reviews-done",
         daily: ".js-reviews-per-day",
       },
+      diffs: {
+        deleted: ".full-diff .deleted > div",
+        added: ".full-diff .inserted > div",
+      },
       title: {
         description: ".s-page-title--description",
         learnMore: ".js-show-modal-from-nav.s-link",
@@ -98,9 +102,9 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     },
   };
 
-  const handleMatchFailure = (
+  const handleMatchFailure = <R extends null | false>(
     selector: string,
-    returnValue: null | false = null
+    returnValue: R
   ) => {
     console.debug(`Couldn't find the element with selector: ${selector}`);
     return returnValue;
@@ -158,7 +162,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     const postWrapSelector = config.selectors.info.post.wrapper;
 
     const spans = document.querySelectorAll(postWrapSelector);
-    if (!spans.length) return handleMatchFailure(postWrapSelector);
+    if (!spans.length) return handleMatchFailure(postWrapSelector, null);
 
     const userSpan = Array.from(spans).find(({ textContent }) =>
       /proposed/i.test(textContent || "")
@@ -169,7 +173,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
     const { parentElement } = userSpan;
     const link = parentElement!.querySelector<HTMLAnchorElement>(cardSelector);
-    if (!link) return handleMatchFailure(cardSelector);
+    if (!link) return handleMatchFailure(cardSelector, null);
 
     const { href } = link;
     const [, userId] = href.match(/users\/(\d+)/) || [];
@@ -283,6 +287,19 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return stats;
   };
 
+  const decolorDiff = (cnf: typeof config) => {
+    const { added, deleted } = cnf.selectors.diffs;
+
+    const addWrapper = document.querySelector<HTMLDivElement>(added);
+    const delWrapper = document.querySelector<HTMLDivElement>(deleted);
+
+    if (!addWrapper || !delWrapper) return false;
+
+    addWrapper.style.backgroundColor = "unset";
+    delWrapper.style.backgroundColor = "unset";
+    return true;
+  };
+
   const createEditorStatsItem = (
     { link }: UserInfo,
     suggestions: SuggestedEditInfo[]
@@ -366,14 +383,14 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return true;
   };
 
-  const moveProgressToTabs = () => {
+  const moveProgressToTabs = ({ selectors }: typeof config) => {
     const actions = selectActions();
     const action = actions.find(({ href }) =>
       /\/review\/suggested-edits/.test(href)
     );
 
-    const dailyElem = document.querySelector(config.selectors.reviews.daily);
-    const reviewedElem = document.querySelector(config.selectors.reviews.done);
+    const dailyElem = document.querySelector(selectors.reviews.daily);
+    const reviewedElem = document.querySelector(selectors.reviews.done);
 
     if (!dailyElem || !reviewedElem) return false;
 
@@ -434,8 +451,23 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return true;
   };
 
-  moveProgressToTabs();
-  addStatsSidebar();
+  const handlerMap: { [x: string]: (cnf: typeof config) => boolean } = {
+    moveProgressToTabs,
+    optimizePageTitle,
+    decolorDiff,
+  };
 
-  optimizePageTitle(config);
+  const statuses = Object.entries(handlerMap).map(([key, handler]) => [
+    key,
+    handler(config),
+  ]);
+
+  const statusMsg = statuses.reduce(
+    (acc, [k, v]) => `${acc}\n${k} - ${v ? "ok" : "failed"}`,
+    "Status: "
+  );
+
+  console.debug(statusMsg);
+
+  await addStatsSidebar();
 })();

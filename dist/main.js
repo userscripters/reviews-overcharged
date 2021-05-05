@@ -9,6 +9,10 @@
                 done: ".js-reviews-done",
                 daily: ".js-reviews-per-day",
             },
+            diffs: {
+                deleted: ".full-diff .deleted > div",
+                added: ".full-diff .inserted > div",
+            },
             title: {
                 description: ".s-page-title--description",
                 learnMore: ".js-show-modal-from-nav.s-link",
@@ -25,7 +29,7 @@
             },
         },
     };
-    const handleMatchFailure = (selector, returnValue = null) => {
+    const handleMatchFailure = (selector, returnValue) => {
         console.debug(`Couldn't find the element with selector: ${selector}`);
         return returnValue;
     };
@@ -63,7 +67,7 @@
         const postWrapSelector = config.selectors.info.post.wrapper;
         const spans = document.querySelectorAll(postWrapSelector);
         if (!spans.length)
-            return handleMatchFailure(postWrapSelector);
+            return handleMatchFailure(postWrapSelector, null);
         const userSpan = Array.from(spans).find(({ textContent }) => /proposed/i.test(textContent || ""));
         if (!userSpan)
             return null;
@@ -71,7 +75,7 @@
         const { parentElement } = userSpan;
         const link = parentElement.querySelector(cardSelector);
         if (!link)
-            return handleMatchFailure(cardSelector);
+            return handleMatchFailure(cardSelector, null);
         const { href } = link;
         const [, userId] = href.match(/users\/(\d+)/) || [];
         if (!userId)
@@ -160,6 +164,16 @@
         });
         return stats;
     };
+    const decolorDiff = (cnf) => {
+        const { added, deleted } = cnf.selectors.diffs;
+        const addWrapper = document.querySelector(added);
+        const delWrapper = document.querySelector(deleted);
+        if (!addWrapper || !delWrapper)
+            return false;
+        addWrapper.style.backgroundColor = "unset";
+        delWrapper.style.backgroundColor = "unset";
+        return true;
+    };
     const createEditorStatsItem = ({ link }, suggestions) => {
         const { approved, rejected, total, ratio: { approvedToRejected, ofApproved, ofRejected }, } = getSuggestionTotals(suggestions);
         const itemParams = {
@@ -210,11 +224,11 @@
         titleWrap.append(titleCell, linkCell);
         return true;
     };
-    const moveProgressToTabs = () => {
+    const moveProgressToTabs = ({ selectors }) => {
         const actions = selectActions();
         const action = actions.find(({ href }) => /\/review\/suggested-edits/.test(href));
-        const dailyElem = document.querySelector(config.selectors.reviews.daily);
-        const reviewedElem = document.querySelector(config.selectors.reviews.done);
+        const dailyElem = document.querySelector(selectors.reviews.daily);
+        const reviewedElem = document.querySelector(selectors.reviews.done);
         if (!dailyElem || !reviewedElem)
             return false;
         const daily = trimNumericString(dailyElem.textContent || "0");
@@ -257,7 +271,16 @@
         editAuthorInfo && sidebar.append(dialog);
         return true;
     };
-    moveProgressToTabs();
-    addStatsSidebar();
-    optimizePageTitle(config);
+    const handlerMap = {
+        moveProgressToTabs,
+        optimizePageTitle,
+        decolorDiff,
+    };
+    const statuses = Object.entries(handlerMap).map(([key, handler]) => [
+        key,
+        handler(config),
+    ]);
+    const statusMsg = statuses.reduce((acc, [k, v]) => `${acc}\n${k} - ${v ? "ok" : "failed"}`, "Status: ");
+    console.debug(statusMsg);
+    await addStatsSidebar();
 })();
