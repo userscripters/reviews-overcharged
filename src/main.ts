@@ -75,8 +75,31 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
   const API_VER = 2.2;
 
   const config = {
+    classes: {
+      grid: {
+        container: "grid",
+        cell: "grid--cell",
+      },
+    },
     selectors: {
-      actions: ".s-page-title--actions a",
+      actions: {
+        sidebar: ".js-actions-sidebar",
+        modal: {
+          form: "form[action='/suggested-edits/reject']",
+          votes: {
+            labels: "label[for^=rejection-reason].s-label",
+            counts: ".s-badge__votes",
+          },
+        },
+        inputs: {
+          reject: "#review-action-Reject",
+        },
+      },
+      buttons: {
+        submit: ".js-review-submit",
+        skip: ".js-review-actions:not(.d-none) .js-action-button[value=1]",
+        close: ".s-modal--close",
+      },
       reviews: {
         done: ".js-reviews-done",
         daily: ".js-reviews-per-day",
@@ -87,6 +110,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
       },
       title: {
         description: ".s-page-title--description",
+        actions: ".s-page-title--actions a",
         learnMore: ".js-show-modal-from-nav.s-link",
         title: ".s-page-title--text",
         header: ".s-page-title--header",
@@ -112,7 +136,9 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
   const selectActions = () =>
     Array.from(
-      document.querySelectorAll<HTMLAnchorElement>(config.selectors.actions)
+      document.querySelectorAll<HTMLAnchorElement>(
+        config.selectors.title.actions
+      )
     );
 
   const getUserInfo = async (id: string, site = "stackoverflow") => {
@@ -184,13 +210,13 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
   const createGridCell = () => {
     const elem = document.createElement("div");
-    elem.classList.add("grid--cell");
+    elem.classList.add(config.classes.grid.cell);
     return elem;
   };
 
   const createItem = (...contents: Node[]) => {
     const elem = document.createElement("div");
-    elem.classList.add("grid--cell", "p12");
+    elem.classList.add(config.classes.grid.cell, "p12");
     elem.append(...contents);
     return elem;
   };
@@ -235,6 +261,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
     if (header) {
       const head = document.createElement("h3");
+      head.classList.add("mb8");
       head.textContent = header;
       list.append(head);
     }
@@ -346,6 +373,11 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return goParentUp(element.parentElement, times - 1);
   };
 
+  const arraySelect = <R extends Element = Element>(
+    ctxt: Element,
+    selector: string
+  ) => Array.from(ctxt.querySelectorAll<R>(selector));
+
   const removeProgressBar = (reviewStatsElement: Element) => {
     const wrapper = goParentUp(reviewStatsElement, 3);
     if (!wrapper) return false;
@@ -364,7 +396,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     const titleWrap = document.querySelector(titleSelector);
     if (!titleWrap) return handleMatchFailure(titleSelector, false);
 
-    titleWrap.classList.add("grid");
+    titleWrap.classList.add(cnf.classes.grid.container);
 
     const header = document.querySelector(cnf.selectors.title.header);
 
@@ -411,8 +443,100 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return removeProgressBar(dailyElem);
   };
 
-  const addStatsSidebar = async () => {
-    const sidebar = document.querySelector(".js-actions-sidebar");
+  type RejectionCount = {
+    spam: number;
+    improvement: number;
+    intent: number;
+    reply: number;
+    harm: number;
+  };
+
+  const callRejectionModal = (cnf: typeof config) => {
+    const {
+      selectors: {
+        buttons,
+        actions: { inputs, modal },
+      },
+    } = cnf;
+
+    const rejectInput = document.querySelector<HTMLInputElement>(inputs.reject);
+    const submitButton = document.querySelector<HTMLButtonElement>(
+      buttons.submit
+    );
+    if (!rejectInput || !submitButton) return null;
+
+    rejectInput.click();
+    submitButton.click();
+
+    const modalWrapper = document.querySelector<HTMLFormElement>(modal.form);
+    if (!modalWrapper) return null;
+
+    const dolly = modalWrapper.cloneNode(true) as HTMLDivElement;
+
+    const closeBtn = modalWrapper.querySelector<HTMLButtonElement>(
+      buttons.close
+    )!;
+
+    closeBtn.click();
+    return dolly;
+  };
+
+  const getRejectionCount = (cnf: typeof config) => {
+    const {
+      selectors: {
+        actions: { modal },
+      },
+    } = cnf;
+
+    const modalWrapper = callRejectionModal(cnf);
+    if (!modalWrapper) return handleMatchFailure(modal.form, null);
+
+    console.log({ modalWrapper });
+
+    const withVotes = arraySelect<HTMLLabelElement>(
+      modalWrapper,
+      modal.votes.labels
+    );
+
+    const count: RejectionCount = {
+      spam: 0,
+      improvement: 0,
+      intent: 0,
+      reply: 0,
+      harm: 0,
+    };
+
+    const reasonMap: { [P in keyof RejectionCount as string]: P } = {
+      102: "improvement",
+      101: "spam",
+      104: "intent",
+      105: "reply",
+      0: "harm",
+    };
+
+    const voteSelector = modal.votes.counts;
+
+    withVotes.forEach((label) => {
+      const { htmlFor } = label;
+      const [_full, reasonId] = htmlFor.match(/(\d+$)/) || [];
+      const reason = reasonMap[reasonId];
+      if (label.querySelector(voteSelector)) count[reason] += 1;
+    });
+
+    return count;
+  };
+
+  const scase = (word: string) =>
+    word[0].toUpperCase() + word.slice(1).toLowerCase();
+
+  const createRejectionCountItem = (count: RejectionCount) => {
+    const withVotes = Object.entries(count).filter(([_k, v]) => !!v);
+    const items = withVotes.map(([k, v]) => `${scase(k)}: ${v}`);
+    return createItem(ul({ items, header: "Reject votes" }));
+  };
+
+  const addStatsSidebar = async (cnf: typeof config) => {
+    const sidebar = document.querySelector(cnf.selectors.actions.sidebar);
 
     if (!sidebar) return false;
 
@@ -424,7 +548,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     header.textContent = "Extra Info";
 
     const itemWrap = document.createElement("div");
-    itemWrap.classList.add("grid", "fd-column");
+    itemWrap.classList.add(cnf.classes.grid.container, "fd-column");
 
     const authorId = getEditAuthorId();
 
@@ -435,12 +559,17 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
       getSuggestionsUserStats(authorId),
     ]);
 
-    if (!editAuthorInfo) return false;
+    const rejectCount = getRejectionCount(cnf);
+
+    if (!editAuthorInfo || !rejectCount) return false;
 
     const items: HTMLDivElement[] = [];
 
-    items.push(createEditAuthorItem(editAuthorInfo));
-    items.push(createEditorStatsItem(editAuthorInfo, editAuthorStats));
+    items.push(
+      createEditAuthorItem(editAuthorInfo),
+      createEditorStatsItem(editAuthorInfo, editAuthorStats),
+      createRejectionCountItem(rejectCount)
+    );
 
     itemWrap.append(...items);
 
@@ -469,5 +598,5 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
   console.debug(statusMsg);
 
-  await addStatsSidebar();
+  await addStatsSidebar(config);
 })();

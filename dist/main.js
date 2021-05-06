@@ -3,8 +3,31 @@
     const API_BASE = "https://api.stackexchange.com";
     const API_VER = 2.2;
     const config = {
+        classes: {
+            grid: {
+                container: "grid",
+                cell: "grid--cell",
+            },
+        },
         selectors: {
-            actions: ".s-page-title--actions a",
+            actions: {
+                sidebar: ".js-actions-sidebar",
+                modal: {
+                    form: "form[action='/suggested-edits/reject']",
+                    votes: {
+                        labels: "label[for^=rejection-reason].s-label",
+                        counts: ".s-badge__votes",
+                    },
+                },
+                inputs: {
+                    reject: "#review-action-Reject",
+                },
+            },
+            buttons: {
+                submit: ".js-review-submit",
+                skip: ".js-review-actions:not(.d-none) .js-action-button[value=1]",
+                close: ".s-modal--close",
+            },
             reviews: {
                 done: ".js-reviews-done",
                 daily: ".js-reviews-per-day",
@@ -15,6 +38,7 @@
             },
             title: {
                 description: ".s-page-title--description",
+                actions: ".s-page-title--actions a",
                 learnMore: ".js-show-modal-from-nav.s-link",
                 title: ".s-page-title--text",
                 header: ".s-page-title--header",
@@ -33,7 +57,7 @@
         console.debug(`Couldn't find the element with selector: ${selector}`);
         return returnValue;
     };
-    const selectActions = () => Array.from(document.querySelectorAll(config.selectors.actions));
+    const selectActions = () => Array.from(document.querySelectorAll(config.selectors.title.actions));
     const getUserInfo = async (id, site = "stackoverflow") => {
         const url = new URL(`${API_BASE}/${API_VER}/users/${id}`);
         url.search = new URLSearchParams({ site }).toString();
@@ -84,12 +108,12 @@
     };
     const createGridCell = () => {
         const elem = document.createElement("div");
-        elem.classList.add("grid--cell");
+        elem.classList.add(config.classes.grid.cell);
         return elem;
     };
     const createItem = (...contents) => {
         const elem = document.createElement("div");
-        elem.classList.add("grid--cell", "p12");
+        elem.classList.add(config.classes.grid.cell, "p12");
         elem.append(...contents);
         return elem;
     };
@@ -125,6 +149,7 @@
         style.margin = "0";
         if (header) {
             const head = document.createElement("h3");
+            head.classList.add("mb8");
             head.textContent = header;
             list.append(head);
         }
@@ -195,6 +220,7 @@
             return element;
         return goParentUp(element.parentElement, times - 1);
     };
+    const arraySelect = (ctxt, selector) => Array.from(ctxt.querySelectorAll(selector));
     const removeProgressBar = (reviewStatsElement) => {
         const wrapper = goParentUp(reviewStatsElement, 3);
         if (!wrapper)
@@ -210,7 +236,7 @@
         const titleWrap = document.querySelector(titleSelector);
         if (!titleWrap)
             return handleMatchFailure(titleSelector, false);
-        titleWrap.classList.add("grid");
+        titleWrap.classList.add(cnf.classes.grid.container);
         const header = document.querySelector(cnf.selectors.title.header);
         const titleCell = createGridCell();
         titleCell.classList.add("ml12");
@@ -243,8 +269,61 @@
         action.textContent += ` (${reviewed}/${daily})`;
         return removeProgressBar(dailyElem);
     };
-    const addStatsSidebar = async () => {
-        const sidebar = document.querySelector(".js-actions-sidebar");
+    const callRejectionModal = (cnf) => {
+        const { selectors: { buttons, actions: { inputs, modal }, }, } = cnf;
+        const rejectInput = document.querySelector(inputs.reject);
+        const submitButton = document.querySelector(buttons.submit);
+        if (!rejectInput || !submitButton)
+            return null;
+        rejectInput.click();
+        submitButton.click();
+        const modalWrapper = document.querySelector(modal.form);
+        if (!modalWrapper)
+            return null;
+        const dolly = modalWrapper.cloneNode(true);
+        const closeBtn = modalWrapper.querySelector(buttons.close);
+        closeBtn.click();
+        return dolly;
+    };
+    const getRejectionCount = (cnf) => {
+        const { selectors: { actions: { modal }, }, } = cnf;
+        const modalWrapper = callRejectionModal(cnf);
+        if (!modalWrapper)
+            return handleMatchFailure(modal.form, null);
+        console.log({ modalWrapper });
+        const withVotes = arraySelect(modalWrapper, modal.votes.labels);
+        const count = {
+            spam: 0,
+            improvement: 0,
+            intent: 0,
+            reply: 0,
+            harm: 0,
+        };
+        const reasonMap = {
+            102: "improvement",
+            101: "spam",
+            104: "intent",
+            105: "reply",
+            0: "harm",
+        };
+        const voteSelector = modal.votes.counts;
+        withVotes.forEach((label) => {
+            const { htmlFor } = label;
+            const [_full, reasonId] = htmlFor.match(/(\d+$)/) || [];
+            const reason = reasonMap[reasonId];
+            if (label.querySelector(voteSelector))
+                count[reason] += 1;
+        });
+        return count;
+    };
+    const scase = (word) => word[0].toUpperCase() + word.slice(1).toLowerCase();
+    const createRejectionCountItem = (count) => {
+        const withVotes = Object.entries(count).filter(([_k, v]) => !!v);
+        const items = withVotes.map(([k, v]) => `${scase(k)}: ${v}`);
+        return createItem(ul({ items, header: "Reject votes" }));
+    };
+    const addStatsSidebar = async (cnf) => {
+        const sidebar = document.querySelector(cnf.selectors.actions.sidebar);
         if (!sidebar)
             return false;
         const dialog = document.createElement("div");
@@ -253,7 +332,7 @@
         header.classList.add("s-sidebarwidget--header");
         header.textContent = "Extra Info";
         const itemWrap = document.createElement("div");
-        itemWrap.classList.add("grid", "fd-column");
+        itemWrap.classList.add(cnf.classes.grid.container, "fd-column");
         const authorId = getEditAuthorId();
         if (!authorId)
             return false;
@@ -261,11 +340,11 @@
             getUserInfo(authorId),
             getSuggestionsUserStats(authorId),
         ]);
-        if (!editAuthorInfo)
+        const rejectCount = getRejectionCount(cnf);
+        if (!editAuthorInfo || !rejectCount)
             return false;
         const items = [];
-        items.push(createEditAuthorItem(editAuthorInfo));
-        items.push(createEditorStatsItem(editAuthorInfo, editAuthorStats));
+        items.push(createEditAuthorItem(editAuthorInfo), createEditorStatsItem(editAuthorInfo, editAuthorStats), createRejectionCountItem(rejectCount));
         itemWrap.append(...items);
         dialog.append(header, itemWrap);
         editAuthorInfo && sidebar.append(dialog);
@@ -282,5 +361,5 @@
     ]);
     const statusMsg = statuses.reduce((acc, [k, v]) => `${acc}\n${k} - ${v ? "ok" : "failed"}`, "Status: ");
     console.debug(statusMsg);
-    await addStatsSidebar();
+    await addStatsSidebar(config);
 })();
