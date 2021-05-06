@@ -5,6 +5,7 @@
     "module": "none",
     "lib": ["ESNext", "DOM"],
     "outDir": "dist",
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "removeComments": true
   }
 }
