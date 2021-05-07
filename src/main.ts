@@ -70,11 +70,29 @@ type GetSuggestedEditsStatsOptions = {
 type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
 (async () => {
+  const toApiDate = (date: Date) => (date.valueOf() / 1e3).toString();
+
+  const toPercent = (ratio: number) => `${Math.trunc(ratio * 100)}%`;
+
+  const last = <A extends any[]>(arr: A): A[number] => arr[arr.length - 1];
+
+  const safeMatch = (text: string, regex: RegExp, def = "") =>
+    (text.match(regex) || [text, def]).slice(1) as [
+      full: string,
+      group1: string,
+      ...others: string[]
+    ];
+
   const API_BASE = "https://api.stackexchange.com";
+
+  const DEF_SITE = "stackoverflow";
 
   const API_VER = 2.2;
 
   const config = {
+    page: {
+      suggestionId: last(location.pathname.split("/")),
+    },
     classes: {
       grid: {
         container: "grid",
@@ -107,6 +125,16 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
       diffs: {
         deleted: ".full-diff .deleted > div",
         added: ".full-diff .inserted > div",
+      },
+      page: {
+        links: {
+          question: "a[href*='/questions/']",
+          answer: "a.answer-hyperlink",
+        },
+      },
+      content: {
+        typeHint: ".js-review-content h2",
+        postSummary: ".s-post-summary",
       },
       title: {
         description: ".s-page-title--description",
@@ -141,7 +169,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
       )
     );
 
-  const getUserInfo = async (id: string, site = "stackoverflow") => {
+  const getUserInfo = async (id: string, site = DEF_SITE) => {
     const url = new URL(`${API_BASE}/${API_VER}/users/${id}`);
     url.search = new URLSearchParams({ site }).toString();
     const res = await fetch(url.toString());
@@ -153,8 +181,6 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return userInfo;
   };
 
-  const toApiDate = (date: Date) => (date.valueOf() / 1e3).toString();
-
   const getSuggestionsUserStats = async (
     id: string,
     options: GetSuggestedEditsStatsOptions = {}
@@ -162,7 +188,7 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     const url = new URL(`${API_BASE}/${API_VER}/users/${id}/suggested-edits`);
 
     const params: Record<string, string> = {
-      site: options.site || "stackoverflow",
+      site: options.site || DEF_SITE,
     };
 
     if (Object.keys(options).length) {
@@ -183,6 +209,27 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
     return items;
   };
+
+  const getAnswerId = (selector: string) => {
+    const link = document.querySelector<HTMLAnchorElement>(selector);
+    return safeMatch(
+      link?.href || "",
+      /\/questions\/\d+\/[\w-]+\/(\d+)/,
+      ""
+    )[0];
+  };
+
+  const getQuestionId = (selector: string) => {
+    const link = document.querySelector<HTMLAnchorElement>(selector);
+    return safeMatch(link?.href || "", /\/questions\/(\d+)/, "")[0];
+  };
+
+  const getPostId = ({
+    selectors: {
+      page: { links },
+    },
+  }: typeof config) =>
+    getAnswerId(links.answer) || getQuestionId(links.question);
 
   const getEditAuthorId = () => {
     const postWrapSelector = config.selectors.info.post.wrapper;
@@ -288,7 +335,63 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     );
   };
 
-  const toPercent = (ratio: number) => `${Math.trunc(ratio * 100)}%`;
+  type CommonOptions = {
+    site?: string;
+  };
+
+  type SuggestedEditStatus = "approved" | "rejected" | "all" | "pending";
+
+  type SuggestedEditsByPostOptions = {
+    type: SuggestedEditStatus;
+  } & CommonOptions;
+
+  const getSuggestionsByPost = async (
+    postId: string,
+    { site = DEF_SITE, type = "all" }: SuggestedEditsByPostOptions
+  ) => {
+    const url = new URL(
+      `${API_BASE}/${API_VER}/posts/${postId}/suggested-edits`
+    );
+
+    url.search = new URLSearchParams({ site }).toString();
+
+    const res = await fetch(url.toString());
+
+    if (!res.ok) return [];
+
+    const {
+      items,
+    } = (await res.json()) as StackAPIBatchResponse<SuggestedEditInfo>;
+
+    const filters: {
+      [P in SuggestedEditStatus]?: (val: SuggestedEditInfo) => boolean;
+    } = {
+      approved: ({ approval_date }) => !!approval_date,
+      rejected: ({ rejection_date }) => !!rejection_date,
+      pending: ({ approval_date, rejection_date }) =>
+        !approval_date && !rejection_date,
+    };
+
+    const predicate = filters[type];
+
+    return predicate ? items.filter(predicate) : items;
+  };
+
+  const getSuggestedEditsInfo = async (...ids: string[]) => {
+    const url = new URL(
+      `${API_BASE}/${API_VER}/suggested-edits/${ids.join(",")}`
+    );
+
+    const res = await fetch(url.toString());
+
+    if (!res.ok) return [];
+
+    const {
+      items,
+    } = (await res.json()) as StackAPIBatchResponse<SuggestedEditInfo>;
+
+    return items;
+  };
 
   const getSuggestionTotals = (suggestions: SuggestedEditInfo[]) => {
     const stats = {
@@ -443,6 +546,36 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return removeProgressBar(dailyElem);
   };
 
+  const addAuditNotification = async (
+    { selectors: { content } }: typeof config,
+    postId: string
+  ) => {
+    const auditId = "audit_notification";
+
+    if (document.getElementById(auditId)) return true; //early exit if already added
+
+    const { length } = await getSuggestionsByPost(postId, {
+      type: "pending",
+    });
+    if (length) return true;
+
+    const editTypeHint = document.querySelector(content.typeHint);
+    const summary = document.querySelector(content.postSummary);
+
+    if (!editTypeHint) return false;
+
+    const quote = document.createElement("blockquote");
+    quote.id = auditId;
+    quote.classList.add("mb12", "fs-headline1");
+    quote.textContent = "This is an Audit. Tread carefully";
+
+    editTypeHint.after(quote);
+    editTypeHint.remove();
+    summary?.remove();
+
+    return true;
+  };
+
   type RejectionCount = {
     spam: number;
     improvement: number;
@@ -490,8 +623,6 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
     const modalWrapper = callRejectionModal(cnf);
     if (!modalWrapper) return handleMatchFailure(modal.form, null);
-
-    console.log({ modalWrapper });
 
     const withVotes = arraySelect<HTMLLabelElement>(
       modalWrapper,
@@ -580,16 +711,28 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return true;
   };
 
-  const handlerMap: { [x: string]: (cnf: typeof config) => boolean } = {
+  const postId = getPostId(config);
+
+  if (!postId) return;
+
+  const handlerMap: {
+    [x: string]: (
+      cnf: typeof config,
+      postId: string
+    ) => boolean | Promise<boolean>;
+  } = {
     moveProgressToTabs,
     optimizePageTitle,
     decolorDiff,
+    addAuditNotification,
   };
 
-  const statuses = Object.entries(handlerMap).map(([key, handler]) => [
+  const promises = Object.entries(handlerMap).map(([key, handler]) => [
     key,
-    handler(config),
+    handler(config, postId),
   ]);
+
+  const statuses = await Promise.all(promises);
 
   const statusMsg = statuses.reduce(
     (acc, [k, v]) => `${acc}\n${k} - ${v ? "ok" : "failed"}`,

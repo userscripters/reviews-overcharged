@@ -1,8 +1,16 @@
 "use strict";
 (async () => {
+    const toApiDate = (date) => (date.valueOf() / 1e3).toString();
+    const toPercent = (ratio) => `${Math.trunc(ratio * 100)}%`;
+    const last = (arr) => arr[arr.length - 1];
+    const safeMatch = (text, regex, def = "") => (text.match(regex) || [text, def]).slice(1);
     const API_BASE = "https://api.stackexchange.com";
+    const DEF_SITE = "stackoverflow";
     const API_VER = 2.2;
     const config = {
+        page: {
+            suggestionId: last(location.pathname.split("/")),
+        },
         classes: {
             grid: {
                 container: "grid",
@@ -36,6 +44,16 @@
                 deleted: ".full-diff .deleted > div",
                 added: ".full-diff .inserted > div",
             },
+            page: {
+                links: {
+                    question: "a[href*='/questions/']",
+                    answer: "a.answer-hyperlink",
+                },
+            },
+            content: {
+                typeHint: ".js-review-content h2",
+                postSummary: ".s-post-summary",
+            },
             title: {
                 description: ".s-page-title--description",
                 actions: ".s-page-title--actions a",
@@ -58,7 +76,7 @@
         return returnValue;
     };
     const selectActions = () => Array.from(document.querySelectorAll(config.selectors.title.actions));
-    const getUserInfo = async (id, site = "stackoverflow") => {
+    const getUserInfo = async (id, site = DEF_SITE) => {
         const url = new URL(`${API_BASE}/${API_VER}/users/${id}`);
         url.search = new URLSearchParams({ site }).toString();
         const res = await fetch(url.toString());
@@ -67,11 +85,10 @@
         const { items: [userInfo], } = await res.json();
         return userInfo;
     };
-    const toApiDate = (date) => (date.valueOf() / 1e3).toString();
     const getSuggestionsUserStats = async (id, options = {}) => {
         const url = new URL(`${API_BASE}/${API_VER}/users/${id}/suggested-edits`);
         const params = {
-            site: options.site || "stackoverflow",
+            site: options.site || DEF_SITE,
         };
         if (Object.keys(options).length) {
             const { from, to = new Date() } = options;
@@ -87,6 +104,15 @@
         const { items, } = await res.json();
         return items;
     };
+    const getAnswerId = (selector) => {
+        const link = document.querySelector(selector);
+        return safeMatch((link === null || link === void 0 ? void 0 : link.href) || "", /\/questions\/\d+\/[\w-]+\/(\d+)/, "")[0];
+    };
+    const getQuestionId = (selector) => {
+        const link = document.querySelector(selector);
+        return safeMatch((link === null || link === void 0 ? void 0 : link.href) || "", /\/questions\/(\d+)/, "")[0];
+    };
+    const getPostId = ({ selectors: { page: { links }, }, }) => getAnswerId(links.answer) || getQuestionId(links.question);
     const getEditAuthorId = () => {
         const postWrapSelector = config.selectors.info.post.wrapper;
         const spans = document.querySelectorAll(postWrapSelector);
@@ -165,7 +191,29 @@
             items: [namePar, `Reputation: ${reputation}`],
         }));
     };
-    const toPercent = (ratio) => `${Math.trunc(ratio * 100)}%`;
+    const getSuggestionsByPost = async (postId, { site = DEF_SITE, type = "all" }) => {
+        const url = new URL(`${API_BASE}/${API_VER}/posts/${postId}/suggested-edits`);
+        url.search = new URLSearchParams({ site }).toString();
+        const res = await fetch(url.toString());
+        if (!res.ok)
+            return [];
+        const { items, } = (await res.json());
+        const filters = {
+            approved: ({ approval_date }) => !!approval_date,
+            rejected: ({ rejection_date }) => !!rejection_date,
+            pending: ({ approval_date, rejection_date }) => !approval_date && !rejection_date,
+        };
+        const predicate = filters[type];
+        return predicate ? items.filter(predicate) : items;
+    };
+    const getSuggestedEditsInfo = async (...ids) => {
+        const url = new URL(`${API_BASE}/${API_VER}/suggested-edits/${ids.join(",")}`);
+        const res = await fetch(url.toString());
+        if (!res.ok)
+            return [];
+        const { items, } = (await res.json());
+        return items;
+    };
     const getSuggestionTotals = (suggestions) => {
         const stats = {
             get ratio() {
@@ -269,6 +317,28 @@
         action.textContent += ` (${reviewed}/${daily})`;
         return removeProgressBar(dailyElem);
     };
+    const addAuditNotification = async ({ selectors: { content } }, postId) => {
+        const auditId = "audit_notification";
+        if (document.getElementById(auditId))
+            return true;
+        const { length } = await getSuggestionsByPost(postId, {
+            type: "pending",
+        });
+        if (length)
+            return true;
+        const editTypeHint = document.querySelector(content.typeHint);
+        const summary = document.querySelector(content.postSummary);
+        if (!editTypeHint)
+            return false;
+        const quote = document.createElement("blockquote");
+        quote.id = auditId;
+        quote.classList.add("mb12", "fs-headline1");
+        quote.textContent = "This is an Audit. Tread carefully";
+        editTypeHint.after(quote);
+        editTypeHint.remove();
+        summary === null || summary === void 0 ? void 0 : summary.remove();
+        return true;
+    };
     const callRejectionModal = (cnf) => {
         const { selectors: { buttons, actions: { inputs, modal }, }, } = cnf;
         const rejectInput = document.querySelector(inputs.reject);
@@ -290,7 +360,6 @@
         const modalWrapper = callRejectionModal(cnf);
         if (!modalWrapper)
             return handleMatchFailure(modal.form, null);
-        console.log({ modalWrapper });
         const withVotes = arraySelect(modalWrapper, modal.votes.labels);
         const count = {
             spam: 0,
@@ -350,15 +419,20 @@
         editAuthorInfo && sidebar.append(dialog);
         return true;
     };
+    const postId = getPostId(config);
+    if (!postId)
+        return;
     const handlerMap = {
         moveProgressToTabs,
         optimizePageTitle,
         decolorDiff,
+        addAuditNotification,
     };
-    const statuses = Object.entries(handlerMap).map(([key, handler]) => [
+    const promises = Object.entries(handlerMap).map(([key, handler]) => [
         key,
-        handler(config),
+        handler(config, postId),
     ]);
+    const statuses = await Promise.all(promises);
     const statusMsg = statuses.reduce((acc, [k, v]) => `${acc}\n${k} - ${v ? "ok" : "failed"}`, "Status: ");
     console.debug(statusMsg);
     await addStatsSidebar(config);
