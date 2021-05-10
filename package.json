@@ -10,17 +10,19 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/gulp": "^4.0.8",
+    "@types/gulp-concat": "^0.0.32",
     "@types/gulp-rename": "^2.0.0",
     "@types/gulp-uglify": "^3.0.6",
     "gulp": "^4.0.2",
     "gulp-append-prepend": "^1.0.9",
-    "gulp-autoprefixer": "^7.0.1",
+    "gulp-autoprefixer": "^6.1.0",
+    "gulp-concat": "^2.6.1",
     "gulp-inject": "^5.0.5",
     "gulp-rename": "^2.0.0",
     "gulp-typescript": "^6.0.0-alpha.1",
     "gulp-uglify": "^3.0.2",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.4",
-    "undefined": " "
+    "typescript": "^4.2.4"
   }
 }
