@@ -1,8 +1,8 @@
 import browserify from "browserify";
+import type GulpClient from "gulp";
 import { dest, src } from "gulp";
 import ts from "gulp-typescript";
 import ug from "gulp-uglify";
-import GulpClient = require("gulp");
 
 const project = ts.createProject("./tsconfig.json");
 
