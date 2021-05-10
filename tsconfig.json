@@ -2,11 +2,12 @@
   "compilerOptions": {
     "strict": true,
     "target": "ES2019",
-    "module": "none",
+    "module": "es2020",
     "lib": ["ESNext", "DOM"],
     "outDir": "dist",
     "noImplicitReturns": true,
     "removeComments": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "esModuleInterop": true
   }
 }
