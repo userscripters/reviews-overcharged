@@ -1,4 +1,4 @@
-import { config } from "./main";
+import { config } from "./config";
 import { safeMatch } from "./utils";
 
 export const getAnswerId = (selector: string) => {
