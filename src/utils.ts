@@ -1,3 +1,11 @@
+export const handleMatchFailure = <R extends null | false>(
+  selector: string,
+  returnValue: R
+) => {
+  console.debug(`Couldn't find the element with selector: ${selector}`);
+  return returnValue;
+};
+
 export const last = <A extends any[]>(arr: A): A[number] => arr[arr.length - 1];
 
 type SafeMatchReturn = [full: string, group1: string, ...others: string[]];
