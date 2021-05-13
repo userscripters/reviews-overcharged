@@ -1,8 +1,7 @@
 {
-  "name": "so_suggested",
+  "name": "so-suggested",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "gulp build"
@@ -16,7 +15,10 @@
     "@types/gulp-concat": "^0.0.32",
     "@types/gulp-rename": "^2.0.0",
     "@types/gulp-uglify": "^3.0.6",
+    "@types/vinyl-buffer": "^1.0.0",
+    "@types/vinyl-source-stream": "^0.0.30",
     "browserify": "^17.0.0",
+    "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-autoprefixer": "^6.1.0",
     "gulp-inject": "^5.0.5",
@@ -24,6 +26,8 @@
     "gulp-typescript": "^6.0.0-alpha.1",
     "gulp-uglify": "^3.0.2",
     "ts-node": "^9.1.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
   }
 }
