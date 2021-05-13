@@ -1,9 +1,16 @@
-type StackAPIBatchResponse<T> = {
-  has_more: boolean;
-  items: T[];
-  quota_max: number;
-  quota_remaining: number;
-};
+import { StackAPIBatchResponse } from "./api";
+import { API_BASE, API_VER, config, DEF_SITE } from "./config";
+import { arraySelect, goParentUp } from "./domUtils";
+import { getEditAuthorId, getPostId } from "./getters";
+import { a, br, ListOptions, p, text, ul } from "./templaters";
+import { getUserInfo, UserInfo } from "./users";
+import {
+  handleMatchFailure,
+  scase,
+  toApiDate,
+  toPercent,
+  trimNumericString,
+} from "./utils";
 
 type ReputationInfo = {
   on_date: number;
@@ -12,40 +19,6 @@ type ReputationInfo = {
   reputation_change: number;
   user_id: number;
   vote_type: "up_votes";
-};
-
-type UserType =
-  | "unregistered"
-  | "registered"
-  | "moderator"
-  | "team_admin"
-  | "does_not_exist";
-
-type BadgeCounts = {
-  bronze: number;
-  silver: number;
-  gold: number;
-};
-
-type UserInfo = {
-  creation_date: number;
-  is_employee: boolean;
-  last_access_date: number;
-  last_modified_date: number;
-  reputation: number;
-  reputation_change_day: number;
-  reputation_change_month: number;
-  reputation_change_quarter: number;
-  reputation_change_week: number;
-  reputation_change_year: number;
-  user_id: number;
-  display_name: string;
-  website_url: string;
-  profile_image: string;
-  link: string;
-  location: string;
-  user_type: UserType;
-  badge_counts: BadgeCounts;
 };
 
 type SuggestedEditInfo = {
@@ -67,119 +40,13 @@ type GetSuggestedEditsStatsOptions = {
   site?: string;
 };
 
-type ListOptions = { header?: string; items: (string | HTMLElement)[] };
-
 (async () => {
-  const toApiDate = (date: Date) => (date.valueOf() / 1e3).toString();
-
-  const toPercent = (ratio: number) => `${Math.trunc(ratio * 100)}%`;
-
-  const last = <A extends any[]>(arr: A): A[number] => arr[arr.length - 1];
-
-  const safeMatch = (text: string, regex: RegExp, def = "") =>
-    (text.match(regex) || [text, def]).slice(1) as [
-      full: string,
-      group1: string,
-      ...others: string[]
-    ];
-
-  const API_BASE = "https://api.stackexchange.com";
-
-  const DEF_SITE = "stackoverflow";
-
-  const API_VER = 2.2;
-
-  const config = {
-    page: {
-      suggestionId: last(location.pathname.split("/")),
-    },
-    classes: {
-      grid: {
-        container: "grid",
-        cell: "grid--cell",
-      },
-    },
-    selectors: {
-      actions: {
-        sidebar: ".js-actions-sidebar",
-        modal: {
-          form: "form[action='/suggested-edits/reject']",
-          votes: {
-            labels: "label[for^=rejection-reason].s-label",
-            counts: ".s-badge__votes",
-          },
-        },
-        inputs: {
-          reject: "#review-action-Reject",
-        },
-      },
-      buttons: {
-        submit: ".js-review-submit",
-        skip: ".js-review-actions:not(.d-none) .js-action-button[value=1]",
-        close: ".s-modal--close",
-      },
-      reviews: {
-        done: ".js-reviews-done",
-        daily: ".js-reviews-per-day",
-      },
-      diffs: {
-        deleted: ".full-diff .deleted > div",
-        added: ".full-diff .inserted > div",
-      },
-      page: {
-        links: {
-          question: "a[href*='/questions/']",
-          answer: "a.answer-hyperlink",
-        },
-      },
-      content: {
-        typeHint: ".js-review-content h2",
-        postSummary: ".s-post-summary",
-      },
-      title: {
-        description: ".s-page-title--description",
-        actions: ".s-page-title--actions a",
-        learnMore: ".js-show-modal-from-nav.s-link",
-        title: ".s-page-title--text",
-        header: ".s-page-title--header",
-      },
-      info: {
-        post: {
-          wrapper: ".postcell span",
-        },
-        editor: {
-          card: "a.s-user-card--link",
-        },
-      },
-    },
-  };
-
-  const handleMatchFailure = <R extends null | false>(
-    selector: string,
-    returnValue: R
-  ) => {
-    console.debug(`Couldn't find the element with selector: ${selector}`);
-    return returnValue;
-  };
-
   const selectActions = () =>
     Array.from(
       document.querySelectorAll<HTMLAnchorElement>(
         config.selectors.title.actions
       )
     );
-
-  const getUserInfo = async (id: string, site = DEF_SITE) => {
-    const url = new URL(`${API_BASE}/${API_VER}/users/${id}`);
-    url.search = new URLSearchParams({ site }).toString();
-    const res = await fetch(url.toString());
-    if (!res.ok) return null;
-
-    const {
-      items: [userInfo],
-    }: StackAPIBatchResponse<UserInfo> = await res.json();
-    return userInfo;
-  };
 
   const getSuggestionsUserStats = async (
     id: string,
@@ -210,51 +77,6 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     return items;
   };
 
-  const getAnswerId = (selector: string) => {
-    const link = document.querySelector<HTMLAnchorElement>(selector);
-    return safeMatch(
-      link?.href || "",
-      /\/questions\/\d+\/[\w-]+\/(\d+)/,
-      ""
-    )[0];
-  };
-
-  const getQuestionId = (selector: string) => {
-    const link = document.querySelector<HTMLAnchorElement>(selector);
-    return safeMatch(link?.href || "", /\/questions\/(\d+)/, "")[0];
-  };
-
-  const getPostId = ({
-    selectors: {
-      page: { links },
-    },
-  }: typeof config) =>
-    getAnswerId(links.answer) || getQuestionId(links.question);
-
-  const getEditAuthorId = () => {
-    const postWrapSelector = config.selectors.info.post.wrapper;
-
-    const spans = document.querySelectorAll(postWrapSelector);
-    if (!spans.length) return handleMatchFailure(postWrapSelector, null);
-
-    const userSpan = Array.from(spans).find(({ textContent }) =>
-      /proposed/i.test(textContent || "")
-    );
-    if (!userSpan) return null;
-
-    const cardSelector = config.selectors.info.editor.card;
-
-    const { parentElement } = userSpan;
-    const link = parentElement!.querySelector<HTMLAnchorElement>(cardSelector);
-    if (!link) return handleMatchFailure(cardSelector, null);
-
-    const { href } = link;
-    const [, userId] = href.match(/users\/(\d+)/) || [];
-    if (!userId) return null;
-
-    return userId;
-  };
-
   const createGridCell = () => {
     const elem = document.createElement("div");
     elem.classList.add(config.classes.grid.cell);
@@ -266,57 +88,6 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
     elem.classList.add(config.classes.grid.cell, "p12");
     elem.append(...contents);
     return elem;
-  };
-
-  const text = (text: string) => document.createTextNode(text);
-
-  const br = () => document.createElement("br");
-
-  const a = (link: string, text = link) => {
-    const anchor = document.createElement("a");
-    anchor.href = link;
-    anchor.textContent = text;
-    anchor.target = "_blank";
-    anchor.referrerPolicy = "no-referrer";
-    return anchor;
-  };
-
-  const p = (text: string) => {
-    const par = document.createElement("p");
-    par.style.marginBottom = "0";
-    par.innerText = text;
-    return par;
-  };
-
-  const li = (content: string | HTMLElement) => {
-    const item = document.createElement("li");
-
-    if (typeof content === "string") {
-      item.textContent = content;
-      return item;
-    }
-
-    item.append(content);
-    return item;
-  };
-
-  const ul = ({ header, items }: ListOptions) => {
-    const list = document.createElement("ul");
-    const { style } = list;
-    style.listStyle = "none";
-    style.margin = "0";
-
-    if (header) {
-      const head = document.createElement("h3");
-      head.classList.add("mb8");
-      head.textContent = header;
-      list.append(head);
-    }
-
-    const listItems = items.map(li);
-
-    list.append(...listItems);
-    return list;
   };
 
   const createEditAuthorItem = ({
@@ -468,18 +239,6 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
     return createItem(ul(itemParams));
   };
-
-  const trimNumericString = (text: string) => text.replace(/\D/g, "");
-
-  const goParentUp = (element: Element | null, times = 1): Element | null => {
-    if (times === 0 || !element) return element;
-    return goParentUp(element.parentElement, times - 1);
-  };
-
-  const arraySelect = <R extends Element = Element>(
-    ctxt: Element,
-    selector: string
-  ) => Array.from(ctxt.querySelectorAll<R>(selector));
 
   const removeProgressBar = (reviewStatsElement: Element) => {
     const wrapper = goParentUp(reviewStatsElement, 3);
@@ -656,9 +415,6 @@ type ListOptions = { header?: string; items: (string | HTMLElement)[] };
 
     return count;
   };
-
-  const scase = (word: string) =>
-    word[0].toUpperCase() + word.slice(1).toLowerCase();
 
   const createRejectionCountItem = (count: RejectionCount) => {
     const withVotes = Object.entries(count).filter(([_k, v]) => !!v);
