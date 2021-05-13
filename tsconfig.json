@@ -6,6 +6,8 @@
     "outDir": "dist",
     "noImplicitReturns": true,
     "removeComments": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "skipDefaultLibCheck": true,
+    "module": "none"
   }
 }
