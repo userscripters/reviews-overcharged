@@ -8,6 +8,10 @@
     "removeComments": true,
     "moduleResolution": "node",
     "skipDefaultLibCheck": true,
-    "module": "none"
+    "module": "none",
+    "allowJs": true,
+    "checkJs": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   }
 }
