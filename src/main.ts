@@ -1,7 +1,12 @@
 import { StackAPIBatchResponse } from "./api";
 import { API_BASE, API_VER, config, DEF_SITE } from "./config";
 import { arraySelect, goParentUp } from "./domUtils";
-import { getEditAuthorId, getPostId, getSuggestionTotals, SuggestedEditInfo } from "./getters";
+import {
+  getEditAuthorId,
+  getPostId,
+  getSuggestionTotals,
+  SuggestedEditInfo,
+} from "./getters";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
 import { getUserInfo, UserInfo } from "./users";
 import {
@@ -57,9 +62,8 @@ type GetSuggestedEditsStatsOptions = {
     const res = await fetch(url.toString());
     if (!res.ok) return [];
 
-    const {
-      items,
-    }: StackAPIBatchResponse<SuggestedEditInfo> = await res.json();
+    const { items }: StackAPIBatchResponse<SuggestedEditInfo> =
+      await res.json();
 
     return items;
   };
@@ -117,9 +121,8 @@ type GetSuggestedEditsStatsOptions = {
 
     if (!res.ok) return [];
 
-    const {
-      items,
-    } = (await res.json()) as StackAPIBatchResponse<SuggestedEditInfo>;
+    const { items } =
+      (await res.json()) as StackAPIBatchResponse<SuggestedEditInfo>;
 
     const filters: {
       [P in SuggestedEditStatus]?: (val: SuggestedEditInfo) => boolean;
@@ -382,6 +385,9 @@ type GetSuggestedEditsStatsOptions = {
   const createRejectionCountItem = (count: RejectionCount) => {
     const withVotes = Object.entries(count).filter(([_k, v]) => !!v);
     const items = withVotes.map(([k, v]) => `${scase(k)}: ${v}`);
+
+    if (!items.length) items.push("No reject votes");
+
     return createItem(ul({ items, header: "Reject votes" }));
   };
 
