@@ -1,7 +1,7 @@
 import { StackAPIBatchResponse } from "./api";
 import { API_BASE, API_VER, config, DEF_SITE } from "./config";
 import { arraySelect, goParentUp } from "./domUtils";
-import { getEditAuthorId, getPostId } from "./getters";
+import { getEditAuthorId, getPostId, getSuggestionTotals, SuggestedEditInfo } from "./getters";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
 import { getUserInfo, UserInfo } from "./users";
 import {
@@ -12,27 +12,14 @@ import {
   trimNumericString,
 } from "./utils";
 
-type ReputationInfo = {
+/* type ReputationInfo = {
   on_date: number;
   post_id: number;
   post_type: "answer" | "question";
   reputation_change: number;
   user_id: number;
   vote_type: "up_votes";
-};
-
-type SuggestedEditInfo = {
-  approval_date?: number;
-  comment: string;
-  creation_date: number;
-  post_id: number;
-  post_type: "question" | "answer" | "article";
-  proposing_user?: {}; //TODO: expand
-  rejection_date?: string;
-  suggested_edit_id: number;
-  tags: string[];
-  title: string;
-};
+}; */
 
 type GetSuggestedEditsStatsOptions = {
   from?: Date;
@@ -148,45 +135,21 @@ type GetSuggestedEditsStatsOptions = {
     return predicate ? items.filter(predicate) : items;
   };
 
-  const getSuggestedEditsInfo = async (...ids: string[]) => {
-    const url = new URL(
-      `${API_BASE}/${API_VER}/suggested-edits/${ids.join(",")}`
-    );
+  // const getSuggestedEditsInfo = async (...ids: string[]) => {
+  //   const url = new URL(
+  //     `${API_BASE}/${API_VER}/suggested-edits/${ids.join(",")}`
+  //   );
 
-    const res = await fetch(url.toString());
+  //   const res = await fetch(url.toString());
 
-    if (!res.ok) return [];
+  //   if (!res.ok) return [];
 
-    const {
-      items,
-    } = (await res.json()) as StackAPIBatchResponse<SuggestedEditInfo>;
+  //   const {
+  //     items,
+  //   } = (await res.json()) as StackAPIBatchResponse<SuggestedEditInfo>;
 
-    return items;
-  };
-
-  const getSuggestionTotals = (suggestions: SuggestedEditInfo[]) => {
-    const stats = {
-      get ratio() {
-        const { approved, rejected, total } = this;
-        return {
-          ofApproved: approved / total,
-          ofRejected: rejected / total,
-          approvedToRejected: approved / (rejected === 0 ? 1 : rejected),
-        };
-      },
-      approved: 0,
-      rejected: 0,
-      total: 0,
-    };
-
-    suggestions.forEach(({ approval_date, rejection_date }) => {
-      stats.total += 1;
-      if (approval_date) stats.approved += 1;
-      if (rejection_date) stats.rejected += 1;
-    });
-
-    return stats;
-  };
+  //   return items;
+  // };
 
   const decolorDiff = (cnf: typeof config) => {
     const { added, deleted } = cnf.selectors.diffs;
