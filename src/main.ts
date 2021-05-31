@@ -2,7 +2,7 @@ import { getSuggestionsUserStats } from "./api";
 import { addAuditNotification } from "./audits";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
-import { createGridCell, createItem } from "./dom";
+import { createItem } from "./dom";
 import { arraySelect } from "./domUtils";
 import {
     getEditAuthorId,
@@ -13,6 +13,7 @@ import {
 import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
+import { optimizePageTitle } from "./title";
 import { getUserInfo, UserInfo } from "./users";
 import { handleMatchFailure, scase, toPercent } from "./utils";
 
@@ -96,38 +97,6 @@ testGraph(); //TODO: remove
         );
 
         return createItem(ul(itemParams));
-    };
-
-    const removeTitleLines = (cnf: typeof config, wrapper?: Element) =>
-        (wrapper || document)
-            .querySelectorAll(cnf.selectors.title.description)
-            .forEach((elem) => elem.remove());
-
-    const optimizePageTitle = (cnf: typeof config) => {
-        const titleSelector = cnf.selectors.title.title;
-
-        const titleWrap = document.querySelector(titleSelector);
-        if (!titleWrap) return handleMatchFailure(titleSelector, false);
-
-        titleWrap.classList.add(cnf.classes.grid.container);
-
-        const header = document.querySelector(cnf.selectors.title.header);
-
-        const titleCell = createGridCell();
-        titleCell.classList.add("ml12");
-        if (header) titleCell.append(header);
-
-        const learnMoreBtn = titleWrap.querySelector(
-            cnf.selectors.title.learnMore
-        );
-
-        const linkCell = titleCell.cloneNode() as HTMLDivElement;
-        if (learnMoreBtn) linkCell.append(learnMoreBtn);
-
-        removeTitleLines(cnf, titleWrap);
-
-        titleWrap.append(titleCell, linkCell);
-        return true;
     };
 
     type RejectionCount = {
