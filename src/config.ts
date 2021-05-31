@@ -18,6 +18,8 @@ export const config = {
     },
     selectors: {
         actions: {
+            action: ".js-action-radio-parent",
+            disabled: ".is-disabled",
             wrapper: ".js-review-actions",
             sidebar: ".js-actions-sidebar",
             modal: {
