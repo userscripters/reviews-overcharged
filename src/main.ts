@@ -17,17 +17,21 @@ testGraph(); //TODO: remove
   vote_type: "up_votes";
 }; */
 
+type Handler = (
+    cnf: typeof config,
+    postId: string
+) => boolean | Promise<boolean>;
+
+type HandlerMap = {
+    [x: string]: Handler;
+};
+
 (async () => {
     const postId = getPostId(config);
 
     if (!postId) return;
 
-    const handlerMap: {
-        [x: string]: (
-            cnf: typeof config,
-            postId: string
-        ) => boolean | Promise<boolean>;
-    } = {
+    const handlerMap: HandlerMap = {
         moveProgressToTabs,
         optimizePageTitle,
         decolorDiff,
