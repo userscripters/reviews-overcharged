@@ -15,6 +15,14 @@ export const config = {
             container: "grid",
             cell: "grid--cell",
         },
+        visibility: {
+            none: "v-hidden",
+        },
+    },
+    ids: {
+        progress: {
+            span: "progress-ratio",
+        },
     },
     selectors: {
         actions: {
