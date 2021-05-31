@@ -1,4 +1,4 @@
-import { StackAPIBatchResponse } from "./api";
+import { getSuggestionsByPost, getSuggestionsUserStats, StackAPIBatchResponse } from "./api";
 import { API_BASE, API_VER, config, DEF_SITE } from "./config";
 import { createGridCell, createItem } from "./dom";
 import { arraySelect, goParentUp } from "./domUtils";
@@ -29,12 +29,6 @@ testGraph(); //TODO: remove
   vote_type: "up_votes";
 }; */
 
-type GetSuggestedEditsStatsOptions = {
-    from?: Date;
-    to?: Date;
-    site?: string;
-};
-
 (async () => {
     const selectActions = () =>
         Array.from(
@@ -42,36 +36,6 @@ type GetSuggestedEditsStatsOptions = {
                 config.selectors.title.actions
             )
         );
-
-    const getSuggestionsUserStats = async (
-        id: string,
-        options: GetSuggestedEditsStatsOptions = {}
-    ) => {
-        const url = new URL(
-            `${API_BASE}/${API_VER}/users/${id}/suggested-edits`
-        );
-
-        const params: Record<string, string> = {
-            site: options.site || DEF_SITE,
-        };
-
-        if (Object.keys(options).length) {
-            const { from, to = new Date() } = options;
-
-            if (from) params.from = toApiDate(from);
-            if (to) params.to = toApiDate(to);
-        }
-
-        url.search = new URLSearchParams(params).toString();
-
-        const res = await fetch(url.toString());
-        if (!res.ok) return [];
-
-        const { items }: StackAPIBatchResponse<SuggestedEditInfo> =
-            await res.json();
-
-        return items;
-    };
 
     const createEditAuthorItem = ({
         display_name,
@@ -87,47 +51,6 @@ type GetSuggestedEditsStatsOptions = {
                 items: [namePar, `Reputation: ${reputation}`],
             })
         );
-    };
-
-    type CommonOptions = {
-        site?: string;
-    };
-
-    type SuggestedEditStatus = "approved" | "rejected" | "all" | "pending";
-
-    type SuggestedEditsByPostOptions = {
-        type: SuggestedEditStatus;
-    } & CommonOptions;
-
-    const getSuggestionsByPost = async (
-        postId: string,
-        { site = DEF_SITE, type = "all" }: SuggestedEditsByPostOptions
-    ) => {
-        const url = new URL(
-            `${API_BASE}/${API_VER}/posts/${postId}/suggested-edits`
-        );
-
-        url.search = new URLSearchParams({ site }).toString();
-
-        const res = await fetch(url.toString());
-
-        if (!res.ok) return [];
-
-        const { items } =
-            (await res.json()) as StackAPIBatchResponse<SuggestedEditInfo>;
-
-        const filters: {
-            [P in SuggestedEditStatus]?: (val: SuggestedEditInfo) => boolean;
-        } = {
-            approved: ({ approval_date }) => !!approval_date,
-            rejected: ({ rejection_date }) => !!rejection_date,
-            pending: ({ approval_date, rejection_date }) =>
-                !approval_date && !rejection_date,
-        };
-
-        const predicate = filters[type];
-
-        return predicate ? items.filter(predicate) : items;
     };
 
     // const getSuggestedEditsInfo = async (...ids: string[]) => {
