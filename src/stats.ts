@@ -61,7 +61,7 @@ export const createEditorStatsItem = (
         `Approved: ${approved} (${toPercent(ofApproved)})`,
         `Rejected: ${rejected} (${toPercent(ofRejected)})`,
         `Of total: ${total}`,
-        `Ratio: ${approvedToRejected}`
+        `Ratio: ${approvedToRejected.toExponential(1)}`
     );
 
     return createItem(ul(itemParams));
