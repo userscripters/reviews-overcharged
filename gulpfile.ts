@@ -10,34 +10,35 @@ import * as source from "vinyl-source-stream";
 const project = ts.createProject("./src/tsconfig.json");
 
 export const build: GulpClient.TaskFunction = async () => {
-  const transforming = new Promise((resolve, reject) => {
-    return src("src/*.ts")
-      .pipe(project())
-      .pipe(dest("dist"))
-      .on("error", reject)
-      .on("end", resolve);
-  });
+    const transforming = new Promise((resolve, reject) => {
+        return src("src/*.ts")
+            .pipe(project())
+            .pipe(dest("dist"))
+            .on("error", reject)
+            .on("end", resolve);
+    });
 
-  await transforming;
+    await transforming;
 
-  const entryPath = "dist/main.js";
+    const entryPath = "dist/main.js";
 
-  const bobj = browserify({
-    entries: entryPath,
-  });
+    const bobj = browserify({
+        entries: entryPath,
+    });
 
-  const bundling = new Promise((resolve, reject) => {
-    bobj
-      .bundle()
-      .pipe(source(entryPath))
-      .pipe(buffer())
-      .pipe(ug({ output: { webkit: true } }))
-      .pipe(dest(".", { overwrite: true }))
-      .on("error", reject)
-      .on("end", resolve);
-  });
+    const bundling = new Promise((resolve, reject) => {
+        bobj.bundle()
+            .pipe(source(entryPath))
+            .pipe(buffer())
+            .pipe(
+                ug({ output: { webkit: true }, mangle: { keep_fnames: true } })
+            )
+            .pipe(dest(".", { overwrite: true }))
+            .on("error", reject)
+            .on("end", resolve);
+    });
 
-  await bundling;
+    await bundling;
 
-  del(["dist/**/*", "!dist/main.js"]);
+    del(["dist/**/*", "!dist/main.js"]);
 };
