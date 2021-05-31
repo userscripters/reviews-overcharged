@@ -1,6 +1,7 @@
 import { getSuggestionsUserStats } from "./api";
 import { addAuditNotification } from "./audits";
 import { config } from "./config";
+import { decolorDiff } from "./diffs";
 import { createGridCell, createItem } from "./dom";
 import { arraySelect, goParentUp } from "./domUtils";
 import {
@@ -68,19 +69,6 @@ testGraph(); //TODO: remove
 
     //   return items;
     // };
-
-    const decolorDiff = (cnf: typeof config) => {
-        const { added, deleted } = cnf.selectors.diffs;
-
-        const addWrapper = document.querySelector<HTMLDivElement>(added);
-        const delWrapper = document.querySelector<HTMLDivElement>(deleted);
-
-        if (!addWrapper || !delWrapper) return false;
-
-        addWrapper.style.backgroundColor = "unset";
-        delWrapper.style.backgroundColor = "unset";
-        return true;
-    };
 
     const createEditorStatsItem = (
         { link }: UserInfo,
