@@ -22,24 +22,20 @@ type Handler = (
     postId: string
 ) => boolean | Promise<boolean>;
 
-type HandlerMap = {
-    [x: string]: Handler;
-};
-
 (async () => {
     const postId = getPostId(config);
 
     if (!postId) return;
 
-    const handlerMap: HandlerMap = {
+    const handlers: Handler[] = [
         moveProgressToTabs,
         optimizePageTitle,
         decolorDiff,
         addAuditNotification,
-    };
+    ];
 
-    const promises = Object.entries(handlerMap).map(([key, handler]) => [
-        key,
+    const promises = handlers.map((handler) => [
+        handler.name,
         handler(config, postId),
     ]);
 
