@@ -3,7 +3,7 @@ import { addAuditNotification } from "./audits";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { createGridCell, createItem } from "./dom";
-import { arraySelect, goParentUp } from "./domUtils";
+import { arraySelect } from "./domUtils";
 import {
     getEditAuthorId,
     getPostId,
@@ -11,14 +11,10 @@ import {
     SuggestedEditInfo,
 } from "./getters";
 import { testGraph } from "./graphs";
+import { moveProgressToTabs } from "./progress";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
 import { getUserInfo, UserInfo } from "./users";
-import {
-    handleMatchFailure,
-    scase,
-    toPercent,
-    trimNumericString,
-} from "./utils";
+import { handleMatchFailure, scase, toPercent } from "./utils";
 
 testGraph(); //TODO: remove
 /* type ReputationInfo = {
@@ -31,13 +27,6 @@ testGraph(); //TODO: remove
 }; */
 
 (async () => {
-    const selectActions = () =>
-        Array.from(
-            document.querySelectorAll<HTMLAnchorElement>(
-                config.selectors.title.actions
-            )
-        );
-
     const createEditAuthorItem = ({
         display_name,
         reputation,
@@ -109,13 +98,6 @@ testGraph(); //TODO: remove
         return createItem(ul(itemParams));
     };
 
-    const removeProgressBar = (reviewStatsElement: Element) => {
-        const wrapper = goParentUp(reviewStatsElement, 3);
-        if (!wrapper) return false;
-        wrapper.remove();
-        return true;
-    };
-
     const removeTitleLines = (cnf: typeof config, wrapper?: Element) =>
         (wrapper || document)
             .querySelectorAll(cnf.selectors.title.description)
@@ -146,34 +128,6 @@ testGraph(); //TODO: remove
 
         titleWrap.append(titleCell, linkCell);
         return true;
-    };
-
-    const moveProgressToTabs = ({ selectors }: typeof config) => {
-        const actions = selectActions();
-        const action = actions.find(({ href }) =>
-            /\/review\/suggested-edits/.test(href)
-        );
-
-        const dailyElem = document.querySelector(selectors.reviews.daily);
-        const reviewedElem = document.querySelector(selectors.reviews.done);
-
-        if (!dailyElem || !reviewedElem) return false;
-
-        const daily = trimNumericString(dailyElem!.textContent || "0");
-        const reviewed = trimNumericString(reviewedElem!.textContent || "0");
-
-        const ratio = +reviewed / +daily;
-        const percentDone = toPercent(ratio);
-
-        if (!action) return false;
-        const { style } = action;
-
-        style.background = `linear-gradient(90deg, var(--theme-primary-color) ${percentDone}, var(--black-075) ${percentDone})`;
-        style.color = `var(--black-600)`;
-
-        action.textContent += ` (${reviewed}/${daily})`;
-
-        return removeProgressBar(dailyElem);
     };
 
     type RejectionCount = {
