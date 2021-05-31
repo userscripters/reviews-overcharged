@@ -24,6 +24,7 @@ type Handler = (
         optimizePageTitle,
         decolorDiff,
         addAuditNotification,
+        addStatsSidebar,
     ];
 
     const promises = handlers.map((handler) => [
@@ -59,10 +60,11 @@ type Handler = (
 
         if (!newTaskRecord) return;
 
-        await addStatsSidebar(config);
+        await Promise.all([
+            addStatsSidebar(config),
+            moveProgressToTabs(config),
+        ]);
     });
 
     obs.observe(document, { subtree: true, childList: true });
-
-    await addStatsSidebar(config);
 })();
