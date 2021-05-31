@@ -96,8 +96,8 @@ export const addStatsSidebar = async (cnf: typeof config) => {
     if (!authorId) return false;
 
     const [editAuthorInfo, editAuthorStats] = await Promise.all([
-        getUserInfo(authorId),
-        getSuggestionsUserStats(authorId),
+        getUserInfo(cnf, authorId),
+        getSuggestionsUserStats(cnf, authorId),
     ]);
 
     const rejectCount = await getRejectionCount(cnf);

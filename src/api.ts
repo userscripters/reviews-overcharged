@@ -1,4 +1,4 @@
-import { API_BASE, API_VER, DEF_SITE } from "./config";
+import { API_BASE, API_VER, config, DEF_SITE } from "./config";
 import { SuggestedEditInfo } from "./getters";
 import { toApiDate } from "./utils";
 
@@ -60,6 +60,7 @@ export const getSuggestionsByPost = async (
 };
 
 export const getSuggestionsUserStats = async (
+    _cnf: typeof config,
     id: string,
     options: GetSuggestedEditsStatsOptions = {}
 ) => {

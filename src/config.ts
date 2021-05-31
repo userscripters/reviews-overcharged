@@ -24,6 +24,9 @@ export const config = {
             span: "progress-ratio",
         },
     },
+    filters: {
+        unsafe: ")7tZ5Od",
+    },
     selectors: {
         actions: {
             action: ".js-action-radio-parent",
