@@ -3,15 +3,36 @@ import { config } from "./config";
 import { goParentUp } from "./domUtils";
 import { toPercent, trimNumericString } from "./utils";
 
-export const removeProgressBar = (reviewStatsElement: Element) => {
+export const hideProgressBar = (
+    { classes: { visibility } }: typeof config,
+    reviewStatsElement: Element
+) => {
     const wrapper = goParentUp(reviewStatsElement, 3);
     if (!wrapper) return false;
-    wrapper.remove();
+    wrapper.classList.add(visibility.none);
     return true;
+};
+
+const addRatioElement = (
+    { ids: { progress } }: typeof config,
+    parent: Element
+) => {
+    const elem = document.createElement("span");
+    elem.id = progress.span;
+    parent.append(elem);
+    return elem;
+};
+
+const updateRatioElement = (elem: Element, reviewed: number, daily: number) => {
+    elem.textContent = `(${reviewed}/${daily})`;
+    return elem;
 };
 
 export const moveProgressToTabs = (cnf: typeof config) => {
     const {
+        ids: {
+            progress: { span },
+        },
         selectors: { reviews },
     } = cnf;
 
@@ -25,10 +46,10 @@ export const moveProgressToTabs = (cnf: typeof config) => {
 
     if (!dailyElem || !reviewedElem) return false;
 
-    const daily = trimNumericString(dailyElem.textContent || "0");
-    const reviewed = trimNumericString(reviewedElem.textContent || "0");
+    const daily = +trimNumericString(dailyElem.textContent || "0");
+    const reviewed = +trimNumericString(reviewedElem.textContent || "0");
 
-    const ratio = +reviewed / +daily;
+    const ratio = reviewed / daily;
     const percentDone = toPercent(ratio);
 
     if (!action) return false;
@@ -37,7 +58,10 @@ export const moveProgressToTabs = (cnf: typeof config) => {
     style.background = `linear-gradient(90deg, var(--theme-primary-color) ${percentDone}, var(--black-075) ${percentDone})`;
     style.color = `var(--black-600)`;
 
-    action.textContent += ` (${reviewed}/${daily})`;
+    const ratioElem =
+        document.getElementById(span) || addRatioElement(cnf, action);
 
-    return removeProgressBar(dailyElem);
+    updateRatioElement(ratioElem, reviewed, daily);
+
+    return hideProgressBar(cnf, dailyElem);
 };
