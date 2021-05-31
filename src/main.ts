@@ -2,20 +2,12 @@ import { addAuditNotification } from "./audits";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { getPostId } from "./getters";
-import { testGraph } from "./graphs";
+// import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
 import { addStatsSidebar } from "./stats";
 import { optimizePageTitle } from "./title";
 
-testGraph(); //TODO: remove
-/* type ReputationInfo = {
-  on_date: number;
-  post_id: number;
-  post_type: "answer" | "question";
-  reputation_change: number;
-  user_id: number;
-  vote_type: "up_votes";
-}; */
+// testGraph();
 
 type Handler = (
     cnf: typeof config,
@@ -47,6 +39,30 @@ type Handler = (
     );
 
     console.debug(statusMsg);
+
+    const {
+        selectors: {
+            actions: { wrapper },
+        },
+    } = config;
+
+    const nodeTypes = [Node.TEXT_NODE, Node.COMMENT_NODE];
+
+    const obs = new MutationObserver(async (records) => {
+        const newTaskRecord = records.find(({ addedNodes }) =>
+            [...addedNodes].some(
+                (node) =>
+                    nodeTypes.every((type) => type !== node.nodeType) &&
+                    (node as HTMLElement).matches(wrapper)
+            )
+        );
+
+        if (!newTaskRecord) return;
+
+        await addStatsSidebar(config);
+    });
+
+    obs.observe(document, { subtree: true, childList: true });
 
     await addStatsSidebar(config);
 })();

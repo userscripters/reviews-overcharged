@@ -100,7 +100,7 @@ export const addStatsSidebar = async (cnf: typeof config) => {
         getSuggestionsUserStats(authorId),
     ]);
 
-    const rejectCount = getRejectionCount(cnf);
+    const rejectCount = await getRejectionCount(cnf);
 
     if (!editAuthorInfo || !rejectCount) return false;
 

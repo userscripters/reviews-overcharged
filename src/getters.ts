@@ -1,5 +1,5 @@
 import { config } from "./config";
-import { arraySelect } from "./domUtils";
+import { arraySelect, waitForSelector } from "./domUtils";
 import { handleMatchFailure, safeMatch } from "./utils";
 
 export type SuggestedEditInfo = {
@@ -91,11 +91,11 @@ export type RejectionCount = {
     harm: number;
 };
 
-const callRejectionModal = (cnf: typeof config) => {
+const callRejectionModal = async (cnf: typeof config) => {
     const {
         selectors: {
             buttons,
-            actions: { inputs, modal },
+            actions: { inputs, modal, action, disabled },
         },
     } = cnf;
 
@@ -103,12 +103,18 @@ const callRejectionModal = (cnf: typeof config) => {
     const submitButton = document.querySelector<HTMLButtonElement>(
         buttons.submit
     );
+
     if (!rejectInput || !submitButton) return null;
+
+    await waitForSelector(`${action}:not(${disabled})`);
 
     rejectInput.click();
     submitButton.click();
 
-    const modalWrapper = document.querySelector<HTMLFormElement>(modal.form);
+    const [modalWrapper] = [
+        ...(await waitForSelector<HTMLFormElement>(modal.form)),
+    ];
+
     if (!modalWrapper) return null;
 
     const dolly = modalWrapper.cloneNode(true) as HTMLDivElement;
@@ -121,14 +127,14 @@ const callRejectionModal = (cnf: typeof config) => {
     return dolly;
 };
 
-export const getRejectionCount = (cnf: typeof config) => {
+export const getRejectionCount = async (cnf: typeof config) => {
     const {
         selectors: {
             actions: { modal },
         },
     } = cnf;
 
-    const modalWrapper = callRejectionModal(cnf);
+    const modalWrapper = await callRejectionModal(cnf);
     if (!modalWrapper) return handleMatchFailure(modal.form, null);
 
     const withVotes = arraySelect<HTMLLabelElement>(
