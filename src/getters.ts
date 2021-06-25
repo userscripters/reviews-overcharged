@@ -29,6 +29,11 @@ export const getQuestionId = (selector: string) => {
     return safeMatch(link?.href || "", /\/questions\/(\d+)/, "")[0];
 };
 
+export const getExcerptName = (selector: string) => {
+    const link = document.querySelector<HTMLAnchorElement>(selector);
+    return safeMatch(link?.href || "", /\/tags\/(.+)\/info/)[0];
+};
+
 export const getPostId = ({
     selectors: {
         page: { links },
@@ -115,7 +120,7 @@ const callRejectionModal = async (cnf: typeof config) => {
         ...(await waitForSelector<HTMLFormElement>(modal.form)),
     ];
 
-    if (!modalWrapper) return null;
+    if (!modalWrapper) return handleMatchFailure(modal.form, null);
 
     const dolly = modalWrapper.cloneNode(true) as HTMLDivElement;
 
