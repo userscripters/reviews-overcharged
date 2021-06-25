@@ -59,6 +59,7 @@ export const config = {
         },
         page: {
             links: {
+                excerpt: "a.question-hyperlink[href*='/tags']",
                 question: "a[href*='/questions/']",
                 answer: "a.answer-hyperlink",
             },
