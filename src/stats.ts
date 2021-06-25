@@ -3,11 +3,10 @@ import { config } from "./config";
 import { createItem } from "./dom";
 import {
     getEditAuthorId,
-    getRejectionCount,
     getSuggestionTotals,
-    RejectionCount,
     SuggestedEditInfo,
 } from "./getters";
+import { getRejectionCount, RejectionCount } from "./rejections";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
 import { getUserInfo, UserInfo } from "./users";
 import { scase, toPercent } from "./utils";
