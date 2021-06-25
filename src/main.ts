@@ -2,6 +2,7 @@ import { addAuditNotification } from "./audits";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { getPostId } from "./getters";
+import { isExcerpt } from "./guards";
 // import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
 import { addStatsSidebar } from "./stats";
@@ -17,15 +18,18 @@ type Handler = (
 (async () => {
     const postId = getPostId(config);
 
-    if (!postId) return;
+    const isExcerptEdit = postId || isExcerpt(config);
+
+    if (!postId && !isExcerptEdit) return;
 
     const handlers: Handler[] = [
         moveProgressToTabs,
         optimizePageTitle,
         decolorDiff,
-        addAuditNotification,
         addStatsSidebar,
     ];
+
+    if (!isExcerptEdit) handlers.push(addAuditNotification);
 
     const promises = handlers.map((handler) => [
         handler.name,
