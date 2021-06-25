@@ -92,30 +92,28 @@ export const addStatsSidebar = async (cnf: typeof config) => {
 
     const authorId = getEditAuthorId();
 
-    if (!authorId) return false;
-
-    const [editAuthorInfo, editAuthorStats] = await Promise.all([
-        getUserInfo(cnf, authorId),
-        getSuggestionsUserStats(cnf, authorId),
-    ]);
-
     const rejectCount = await getRejectionCount(cnf);
-
-    if (!editAuthorInfo || !rejectCount) return false;
+    if (!rejectCount) return false;
 
     const items: HTMLDivElement[] = [];
 
-    items.push(
-        createEditAuthorItem(editAuthorInfo),
-        createEditorStatsItem(editAuthorInfo, editAuthorStats),
-        createRejectionCountItem(rejectCount)
-    );
+    if (authorId) {
+        const [editAuthorInfo, editAuthorStats] = await Promise.all([
+            getUserInfo(cnf, authorId),
+            getSuggestionsUserStats(cnf, authorId),
+        ]);
+
+        editAuthorInfo &&
+            items.push(
+                createEditAuthorItem(editAuthorInfo),
+                createEditorStatsItem(editAuthorInfo, editAuthorStats)
+            );
+    }
+
+    items.push(createRejectionCountItem(rejectCount));
 
     itemWrap.append(...items);
-
     dialog.append(header, itemWrap);
-
-    editAuthorInfo && sidebar.append(dialog);
-
+    sidebar.append(dialog);
     return true;
 };
