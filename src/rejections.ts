@@ -2,13 +2,17 @@ import { config } from "./config";
 import { arraySelect, waitForSelector } from "./domUtils";
 import { handleMatchFailure } from "./utils";
 
-export type RejectionCount = {
-    spam: number;
-    improvement: number;
-    intent: number;
-    reply: number;
-    harm: number;
-};
+type RejectionReasons =
+    | "spam"
+    | "improvement"
+    | "intent"
+    | "reply"
+    | "harm"
+    | "guidance"
+    | "copyright"
+    | "curcular";
+
+export type RejectionCount = { [P in RejectionReasons]: number };
 
 const callRejectionModal = async (cnf: typeof config) => {
     const {
@@ -67,6 +71,9 @@ export const getRejectionCount = async (cnf: typeof config) => {
         intent: 0,
         reply: 0,
         harm: 0,
+        guidance: 0,
+        copyright: 0,
+        curcular: 0,
     };
 
     const reasonMap: { [P in keyof RejectionCount as string]: P } = {
@@ -74,6 +81,9 @@ export const getRejectionCount = async (cnf: typeof config) => {
         101: "spam",
         104: "intent",
         105: "reply",
+        106: "copyright",
+        107: "guidance",
+        110: "curcular",
         0: "harm",
     };
 
