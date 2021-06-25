@@ -29,17 +29,22 @@ type Handler = (
         addStatsSidebar,
     ];
 
+    //modules + ES5 leads to .name being inaccessible
+    const names = Object.keys({
+        moveProgressToTabs,
+        optimizePageTitle,
+        decolorDiff,
+        addStatsSidebar,
+    });
+
     if (!isExcerptEdit) handlers.push(addAuditNotification);
 
-    const promises = handlers.map((handler) => [
-        handler.name,
-        handler(config, postId),
-    ]);
+    const promises = handlers.map((handler) => handler(config, postId));
 
     const statuses = await Promise.all(promises);
 
     const statusMsg = statuses.reduce(
-        (acc, [k, v]) => `${acc}\n${k} - ${v ? "ok" : "failed"}`,
+        (acc, v, i) => `${acc}\n${names[i]} - ${v ? "ok" : "failed"}`,
         "Status: "
     );
 
