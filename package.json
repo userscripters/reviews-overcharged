@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf dist && gulp build"
+    "build": "rm -rf dist && gulp build",
+    "headers-tm": "bash ./scripts/headers.sh"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,8 @@
     "@types/mocha": "^8.2.2",
     "@types/vinyl-buffer": "^1.0.0",
     "@types/vinyl-source-stream": "^0.0.30",
+    "@userscripters/generate-headers": "^1.5.1",
+    "@userscripters/generate-readme": "^1.1.0",
     "browserify": "^17.0.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
