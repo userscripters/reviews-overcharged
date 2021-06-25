@@ -24,7 +24,7 @@ const addRatioElement = (
 };
 
 const updateRatioElement = (elem: Element, reviewed: number, daily: number) => {
-    elem.textContent = `(${reviewed}/${daily})`;
+    elem.innerHTML = `&nbsp;(${reviewed}/${daily})`;
     return elem;
 };
 
