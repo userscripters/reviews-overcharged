@@ -50,7 +50,7 @@ export const createEditorStatsItem = (
         infoPar.append(
             br(),
             text(`See their `),
-            a(`${link}?tab=activity`, "activity tab")
+            a(`${link}?tab=activity&sort=suggestions`, "activity tab")
         );
 
         itemParams.items.push(infoPar);
