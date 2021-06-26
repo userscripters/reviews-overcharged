@@ -33,9 +33,10 @@ export const createEditorStatsItem = (
 ) => {
     const {
         approved,
+        pending,
         rejected,
         total,
-        ratio: { approvedToRejected, ofApproved, ofRejected },
+        ratio: { approvedToRejected, ofApproved, ofPending, ofRejected },
     } = getSuggestionTotals(suggestions);
 
     const itemParams: ListOptions = {
@@ -59,6 +60,7 @@ export const createEditorStatsItem = (
     itemParams.items.push(
         `Approved: ${approved} (${toPercent(ofApproved)})`,
         `Rejected: ${rejected} (${toPercent(ofRejected)})`,
+        `Pending: ${pending} (${toPercent(ofPending)})`,
         `Of total: ${total}`,
         `Ratio: ${approvedToRejected.toFixed(1)}`
     );

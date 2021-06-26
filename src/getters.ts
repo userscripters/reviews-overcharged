@@ -63,15 +63,33 @@ export const getEditAuthorId = () => {
     return userId;
 };
 
+type EditorStats = {
+    ratio: {
+        ofApproved: number;
+        ofRejected: number;
+        ofPending: number;
+        approvedToRejected: number;
+    };
+    pending: number;
+    approved: number;
+    rejected: number;
+    total: number;
+};
+
 export const getSuggestionTotals = (suggestions: SuggestedEditInfo[]) => {
-    const stats = {
+    const stats: EditorStats = {
         get ratio() {
-            const { approved, rejected, total } = this;
+            const { approved, pending, rejected, total } = this;
             return {
                 ofApproved: approved / total,
                 ofRejected: rejected / total,
+                ofPending: pending / total,
                 approvedToRejected: approved / (rejected === 0 ? 1 : rejected),
             };
+        },
+        get pending() {
+            const { approved, rejected, total } = this;
+            return total - (approved + rejected);
         },
         approved: 0,
         rejected: 0,
