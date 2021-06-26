@@ -10,7 +10,7 @@ type RejectionReasons =
     | "harm"
     | "guidance"
     | "copyright"
-    | "curcular";
+    | "circular";
 
 export type RejectionCount = { [P in RejectionReasons]: number };
 
@@ -73,7 +73,7 @@ export const getRejectionCount = async (cnf: typeof config) => {
         harm: 0,
         guidance: 0,
         copyright: 0,
-        curcular: 0,
+        circular: 0,
     };
 
     const reasonMap: { [P in keyof RejectionCount as string]: P } = {
@@ -83,7 +83,7 @@ export const getRejectionCount = async (cnf: typeof config) => {
         105: "reply",
         106: "copyright",
         107: "guidance",
-        110: "curcular",
+        110: "circular",
         0: "harm",
     };
 
