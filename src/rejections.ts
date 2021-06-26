@@ -3,7 +3,7 @@ import { arraySelect, waitForSelector } from "./domUtils";
 import { handleMatchFailure } from "./utils";
 
 type RejectionReasons =
-    | "spam"
+    | "vandalism"
     | "improvement"
     | "intent"
     | "reply"
@@ -66,7 +66,7 @@ export const getRejectionCount = async (cnf: typeof config) => {
     );
 
     const count: RejectionCount = {
-        spam: 0,
+        vandalism: 0,
         improvement: 0,
         intent: 0,
         reply: 0,
@@ -78,7 +78,7 @@ export const getRejectionCount = async (cnf: typeof config) => {
 
     const reasonMap: { [P in keyof RejectionCount as string]: P } = {
         102: "improvement",
-        101: "spam",
+        101: "vandalism",
         104: "intent",
         105: "reply",
         106: "copyright",
