@@ -4,7 +4,7 @@
 | Author       | Oleg Valter |
 | :----------- | :----------------------- |
 | Name         | Reviews-overcharged    |
-| Description  |            |
+| Description  | Quality of life improvements for review queues           |
 | License      | [GPL-3.0-or-later](https://spdx.org/licenses/GPL-3.0-or-later)                 |
 | Version      | 1.0.0               |
 

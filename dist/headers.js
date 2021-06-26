@@ -1,6 +1,6 @@
 // ==UserScript==
 // @author          Oleg Valter
-// @description    
+// @description     Quality of life improvements for review queues
 // @homepage        https://github.com/userscripters/reviews-overcharged#readme
 // @match           ://*.askubuntu.com/review/suggested-edits/*
 // @match           ://*.mathoverflow.net/review/suggested-edits/*
