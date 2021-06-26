@@ -76,7 +76,7 @@ export const getRejectionCount = async (cnf: typeof config) => {
         circular: 0,
     };
 
-    const reasonMap: { [P in keyof RejectionCount as string]: P } = {
+    const reasonMap: Record<string, RejectionReasons> = {
         102: "improvement",
         101: "vandalism",
         104: "intent",
