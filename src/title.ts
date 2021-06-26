@@ -17,7 +17,7 @@ export const optimizePageTitle = (cnf: typeof config) => {
 
     const header = document.querySelector(cnf.selectors.title.header);
 
-    const titleCell = createGridCell();
+    const titleCell = createGridCell(cnf);
     titleCell.classList.add("ml12");
     if (header) titleCell.append(header);
 

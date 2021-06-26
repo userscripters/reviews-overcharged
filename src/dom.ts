@@ -1,8 +1,8 @@
 import { config } from "./config";
 
-export const createGridCell = () => {
+export const createGridCell = ({ classes }: typeof config) => {
     const elem = document.createElement("div");
-    elem.classList.add(config.classes.grid.cell);
+    elem.classList.add(classes.grid.cell);
     return elem;
 };
 
