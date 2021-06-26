@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf dist && gulp build",
+    "build": "rm -rf dist && gulp build && npm run postbuild",
+    "postbuild": "npm run headers-tm && generate-readme",
     "headers-tm": "bash ./scripts/headers.sh"
   },
   "keywords": [
