@@ -13,7 +13,7 @@
         "@types/chai": "^4.2.21",
         "@types/chai-as-promised": "^7.1.4",
         "@types/gulp": "^4.0.9",
-        "@types/gulp-concat": "^0.0.32",
+        "@types/gulp-concat": "^0.0.33",
         "@types/gulp-rename": "^2.0.1",
         "@types/gulp-uglify": "^3.0.6",
         "@types/mocha": "^8.2.3",
@@ -160,9 +160,9 @@
       }
     },
     "node_modules/@types/gulp-concat": {
-      "version": "0.0.32",
-      "resolved": "https://registry.npmjs.org/@types/gulp-concat/-/gulp-concat-0.0.32.tgz",
-      "integrity": "sha512-CUCFADlITzzBfBa2bdGzhKtvBr4eFh+evb+4igVbvPoO5RyPfHifmyQlZl6lM7q19+OKncRlFXDU7B4X9Ayo2g==",
+      "version": "0.0.33",
+      "resolved": "https://registry.npmjs.org/@types/gulp-concat/-/gulp-concat-0.0.33.tgz",
+      "integrity": "sha512-8On3yjnwXFKmGWm+P9GKBLzuYW9kGnhd3+sTj6cdIPFchYAEdqhc7Q3egTLK/Oqr083w1Q3SyRPAWEHAuxj4DQ==",
       "dev": true,
       "dependencies": {
         "@types/node": "*"
@@ -7947,9 +7947,9 @@
       }
     },
     "@types/gulp-concat": {
-      "version": "0.0.32",
-      "resolved": "https://registry.npmjs.org/@types/gulp-concat/-/gulp-concat-0.0.32.tgz",
-      "integrity": "sha512-CUCFADlITzzBfBa2bdGzhKtvBr4eFh+evb+4igVbvPoO5RyPfHifmyQlZl6lM7q19+OKncRlFXDU7B4X9Ayo2g==",
+      "version": "0.0.33",
+      "resolved": "https://registry.npmjs.org/@types/gulp-concat/-/gulp-concat-0.0.33.tgz",
+      "integrity": "sha512-8On3yjnwXFKmGWm+P9GKBLzuYW9kGnhd3+sTj6cdIPFchYAEdqhc7Q3egTLK/Oqr083w1Q3SyRPAWEHAuxj4DQ==",
       "dev": true,
       "requires": {
         "@types/node": "*"
