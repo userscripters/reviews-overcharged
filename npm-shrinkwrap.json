@@ -14,7 +14,7 @@
         "@types/chai-as-promised": "^7.1.4",
         "@types/gulp": "^4.0.9",
         "@types/gulp-concat": "^0.0.32",
-        "@types/gulp-rename": "^2.0.0",
+        "@types/gulp-rename": "^2.0.1",
         "@types/gulp-uglify": "^3.0.6",
         "@types/mocha": "^8.2.3",
         "@types/vinyl-buffer": "^1.0.0",
@@ -169,9 +169,9 @@
       }
     },
     "node_modules/@types/gulp-rename": {
-      "version": "2.0.0",
-      "resolved": "https://registry.npmjs.org/@types/gulp-rename/-/gulp-rename-2.0.0.tgz",
-      "integrity": "sha512-bgpP2SYp66vH71kRZWv6+0JgBrET8bXNhKMknPsJH0mS3yHyt7wgvISltmV1b8JaaWMjE76oAMquW1h60De5vw==",
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/@types/gulp-rename/-/gulp-rename-2.0.1.tgz",
+      "integrity": "sha512-9ZjeS2RHEnmBmTcyi2+oeye3BgCsWhvi4uv3qCnAg8i6plOuRdaeNxjOves0ELysEXYLBl7bCl5fbVs7AZtgTA==",
       "dev": true,
       "dependencies": {
         "@types/node": "*",
@@ -7956,9 +7956,9 @@
       }
     },
     "@types/gulp-rename": {
-      "version": "2.0.0",
-      "resolved": "https://registry.npmjs.org/@types/gulp-rename/-/gulp-rename-2.0.0.tgz",
-      "integrity": "sha512-bgpP2SYp66vH71kRZWv6+0JgBrET8bXNhKMknPsJH0mS3yHyt7wgvISltmV1b8JaaWMjE76oAMquW1h60De5vw==",
+      "version": "2.0.1",
+      "resolved": "https://registry.npmjs.org/@types/gulp-rename/-/gulp-rename-2.0.1.tgz",
+      "integrity": "sha512-9ZjeS2RHEnmBmTcyi2+oeye3BgCsWhvi4uv3qCnAg8i6plOuRdaeNxjOves0ELysEXYLBl7bCl5fbVs7AZtgTA==",
       "dev": true,
       "requires": {
         "@types/node": "*",
