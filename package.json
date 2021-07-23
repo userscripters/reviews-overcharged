@@ -4,9 +4,10 @@
   "description": "Quality of life improvements for review queues",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf dist && gulp build && npm run postbuild",
-    "postbuild": "npm run headers-tm && generate-readme",
-    "headers-tm": "bash ./scripts/headers.sh"
+    "build": "rm -rf dist && gulp build",
+    "postbuild": "npm run headers-tm && npm run readme",
+    "headers-tm": "bash ./scripts/headers.sh",
+    "readme": "generate-readme"
   },
   "keywords": [
     "reviews",
