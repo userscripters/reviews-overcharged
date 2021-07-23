@@ -1,4 +1,5 @@
 import { addAuditNotification } from "./audits";
+import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { getPostId } from "./getters";
@@ -15,6 +16,8 @@ type Handler = (
     postId: string
 ) => boolean | Promise<boolean>;
 
+type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
+
 (async () => {
     const postId = getPostId(config);
 
@@ -28,6 +31,8 @@ type Handler = (
         decolorDiff,
         addStatsSidebar,
     ];
+
+    const cleanups: Cleaner[] = [removeExistingSidebars];
 
     //modules + ES5 leads to .name being inaccessible
     const names = Object.keys({
@@ -73,6 +78,8 @@ type Handler = (
             addStatsSidebar(config),
             moveProgressToTabs(config),
         ]);
+
+        await Promise.all(cleanups.map((handler) => handler(config)));
     });
 
     obs.observe(document, { subtree: true, childList: true });
