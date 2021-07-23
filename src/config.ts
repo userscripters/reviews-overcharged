@@ -23,6 +23,9 @@ export const config = {
         progress: {
             span: "progress-ratio",
         },
+        sidebar: {
+            extra: "extra-info",
+        },
     },
     filters: {
         unsafe: ")7tZ5Od",
