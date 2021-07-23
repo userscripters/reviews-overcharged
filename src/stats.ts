@@ -9,7 +9,7 @@ import {
 import { getRejectionCount, RejectionCount } from "./rejections";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
 import { getUserInfo, UserInfo } from "./users";
-import { scase, toPercent } from "./utils";
+import { getReviewId, scase, toPercent } from "./utils";
 
 export const createEditAuthorItem = ({
     display_name,
@@ -84,6 +84,7 @@ export const addStatsSidebar = async (cnf: typeof config) => {
 
     const dialog = document.createElement("div");
     dialog.classList.add("s-sidebarwidget", "ml24", "mt24");
+    dialog.id = `${cnf.ids.sidebar.extra}-${getReviewId()}`;
 
     const header = document.createElement("div");
     header.classList.add("s-sidebarwidget--header");
