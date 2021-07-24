@@ -91,9 +91,9 @@
       "dev": true
     },
     "node_modules/@tsconfig/node16": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/@tsconfig/node16/-/node16-1.0.1.tgz",
-      "integrity": "sha512-FTgBI767POY/lKNDNbIzgAX6miIDBs6NTCbdlDb8TrWovHsSvaVIZDlTqym29C6UqhzwcJx4CYr+AlrMywA0cA==",
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/@tsconfig/node16/-/node16-1.0.2.tgz",
+      "integrity": "sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==",
       "dev": true
     },
     "node_modules/@types/browserify": {
@@ -209,9 +209,9 @@
       "dev": true
     },
     "node_modules/@types/node": {
-      "version": "16.3.3",
-      "resolved": "https://registry.npmjs.org/@types/node/-/node-16.3.3.tgz",
-      "integrity": "sha512-8h7k1YgQKxKXWckzFCMfsIwn0Y61UK6tlD6y2lOb3hTOIMlK3t9/QwHOhc81TwU+RMf0As5fj7NPjroERCnejQ==",
+      "version": "16.4.2",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-16.4.2.tgz",
+      "integrity": "sha512-vxyhOzFCm+jC/T5KugbVsYy1DbQM0h3NCFUrVbu0+pYa/nr+heeucpqxpa8j4pUmIGLPYzboY9zIdOF0niFAjQ==",
       "dev": true
     },
     "node_modules/@types/uglify-js": {
@@ -1293,9 +1293,9 @@
       }
     },
     "node_modules/caniuse-lite": {
-      "version": "1.0.30001245",
-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001245.tgz",
-      "integrity": "sha512-768fM9j1PKXpOCKws6eTo3RHmvTUsG9UrpT4WoREFeZgJBTi4/X9g565azS/rVUGtqb8nt7FjLeF5u4kukERnA==",
+      "version": "1.0.30001247",
+      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001247.tgz",
+      "integrity": "sha512-4rS7co+7+AoOSPRPOPUt5/GdaqZc0EsUpWk66ofE3HJTAajUK2Ss2VwoNzVN69ghg8lYYlh0an0Iy4LIHHo9UQ==",
       "dev": true,
       "funding": {
         "type": "opencollective",
@@ -2095,9 +2095,9 @@
       }
     },
     "node_modules/electron-to-chromium": {
-      "version": "1.3.779",
-      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.779.tgz",
-      "integrity": "sha512-nreave0y/1Qhmo8XtO6C/LpawNyC6U26+q7d814/e+tIqUK073pM+4xW7WUXyqCRa5K4wdxHmNMBAi8ap9nEew==",
+      "version": "1.3.786",
+      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.786.tgz",
+      "integrity": "sha512-AmvbLBj3hepRk8v/DHrFF8gINxOFfDbrn6Ts3PcK46/FBdQb5OMmpamSpZQXSkfi77FfBzYtQtAk+00LCLYMVw==",
       "dev": true
     },
     "node_modules/elliptic": {
@@ -5957,9 +5957,9 @@
       }
     },
     "node_modules/postcss": {
-      "version": "8.3.5",
-      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.3.5.tgz",
-      "integrity": "sha512-NxTuJocUhYGsMiMFHDUkmjSKT3EdH4/WbGF6GCi1NDGk+vbcUTun4fpbOqaPtD8IIsztA2ilZm2DhYCuyN58gA==",
+      "version": "8.3.6",
+      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.3.6.tgz",
+      "integrity": "sha512-wG1cc/JhRgdqB6WHEuyLTedf3KIRuD0hG6ldkFEZNCjRxiC+3i6kkWUUbiJQayP28iwG35cEmAbe98585BYV0A==",
       "dev": true,
       "dependencies": {
         "colorette": "^1.2.2",
@@ -7415,9 +7415,9 @@
       }
     },
     "node_modules/uglify-js": {
-      "version": "3.13.10",
-      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.13.10.tgz",
-      "integrity": "sha512-57H3ACYFXeo1IaZ1w02sfA71wI60MGco/IQFjOqK+WtKoprh7Go2/yvd2HPtoJILO2Or84ncLccI4xoHMTSbGg==",
+      "version": "3.14.0",
+      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.14.0.tgz",
+      "integrity": "sha512-R/tiGB1ZXp2BC+TkRGLwj8xUZgdfT2f4UZEgX6aVjJ5uttPrr4fYmwTWDGqVnBCLbOXRMY6nr/BTbwCtVfps0g==",
       "dev": true,
       "bin": {
         "uglifyjs": "bin/uglifyjs"
@@ -8127,9 +8127,9 @@
       "dev": true
     },
     "@tsconfig/node16": {
-      "version": "1.0.1",
-      "resolved": "https://registry.npmjs.org/@tsconfig/node16/-/node16-1.0.1.tgz",
-      "integrity": "sha512-FTgBI767POY/lKNDNbIzgAX6miIDBs6NTCbdlDb8TrWovHsSvaVIZDlTqym29C6UqhzwcJx4CYr+AlrMywA0cA==",
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/@tsconfig/node16/-/node16-1.0.2.tgz",
+      "integrity": "sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==",
       "dev": true
     },
     "@types/browserify": {
@@ -8245,9 +8245,9 @@
       "dev": true
     },
     "@types/node": {
-      "version": "16.3.3",
-      "resolved": "https://registry.npmjs.org/@types/node/-/node-16.3.3.tgz",
-      "integrity": "sha512-8h7k1YgQKxKXWckzFCMfsIwn0Y61UK6tlD6y2lOb3hTOIMlK3t9/QwHOhc81TwU+RMf0As5fj7NPjroERCnejQ==",
+      "version": "16.4.2",
+      "resolved": "https://registry.npmjs.org/@types/node/-/node-16.4.2.tgz",
+      "integrity": "sha512-vxyhOzFCm+jC/T5KugbVsYy1DbQM0h3NCFUrVbu0+pYa/nr+heeucpqxpa8j4pUmIGLPYzboY9zIdOF0niFAjQ==",
       "dev": true
     },
     "@types/uglify-js": {
@@ -9129,9 +9129,9 @@
       "dev": true
     },
     "caniuse-lite": {
-      "version": "1.0.30001245",
-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001245.tgz",
-      "integrity": "sha512-768fM9j1PKXpOCKws6eTo3RHmvTUsG9UrpT4WoREFeZgJBTi4/X9g565azS/rVUGtqb8nt7FjLeF5u4kukERnA==",
+      "version": "1.0.30001247",
+      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001247.tgz",
+      "integrity": "sha512-4rS7co+7+AoOSPRPOPUt5/GdaqZc0EsUpWk66ofE3HJTAajUK2Ss2VwoNzVN69ghg8lYYlh0an0Iy4LIHHo9UQ==",
       "dev": true
     },
     "chai": {
@@ -9793,9 +9793,9 @@
       }
     },
     "electron-to-chromium": {
-      "version": "1.3.779",
-      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.779.tgz",
-      "integrity": "sha512-nreave0y/1Qhmo8XtO6C/LpawNyC6U26+q7d814/e+tIqUK073pM+4xW7WUXyqCRa5K4wdxHmNMBAi8ap9nEew==",
+      "version": "1.3.786",
+      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.786.tgz",
+      "integrity": "sha512-AmvbLBj3hepRk8v/DHrFF8gINxOFfDbrn6Ts3PcK46/FBdQb5OMmpamSpZQXSkfi77FfBzYtQtAk+00LCLYMVw==",
       "dev": true
     },
     "elliptic": {
@@ -12843,9 +12843,9 @@
       "dev": true
     },
     "postcss": {
-      "version": "8.3.5",
-      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.3.5.tgz",
-      "integrity": "sha512-NxTuJocUhYGsMiMFHDUkmjSKT3EdH4/WbGF6GCi1NDGk+vbcUTun4fpbOqaPtD8IIsztA2ilZm2DhYCuyN58gA==",
+      "version": "8.3.6",
+      "resolved": "https://registry.npmjs.org/postcss/-/postcss-8.3.6.tgz",
+      "integrity": "sha512-wG1cc/JhRgdqB6WHEuyLTedf3KIRuD0hG6ldkFEZNCjRxiC+3i6kkWUUbiJQayP28iwG35cEmAbe98585BYV0A==",
       "dev": true,
       "requires": {
         "colorette": "^1.2.2",
@@ -14004,9 +14004,9 @@
       "dev": true
     },
     "uglify-js": {
-      "version": "3.13.10",
-      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.13.10.tgz",
-      "integrity": "sha512-57H3ACYFXeo1IaZ1w02sfA71wI60MGco/IQFjOqK+WtKoprh7Go2/yvd2HPtoJILO2Or84ncLccI4xoHMTSbGg==",
+      "version": "3.14.0",
+      "resolved": "https://registry.npmjs.org/uglify-js/-/uglify-js-3.14.0.tgz",
+      "integrity": "sha512-R/tiGB1ZXp2BC+TkRGLwj8xUZgdfT2f4UZEgX6aVjJ5uttPrr4fYmwTWDGqVnBCLbOXRMY6nr/BTbwCtVfps0g==",
       "dev": true
     },
     "umd": {
