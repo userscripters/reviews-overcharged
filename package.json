@@ -29,7 +29,7 @@
     "@types/vinyl-buffer": "^1.0.0",
     "@types/vinyl-source-stream": "^0.0.30",
     "@userscripters/generate-headers": "^1.6.4",
-    "@userscripters/generate-readme": "^1.1.0",
+    "@userscripters/generate-readme": "^2.1.1",
     "browserify": "^17.0.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
