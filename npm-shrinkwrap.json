@@ -19,7 +19,7 @@
         "@types/mocha": "^9.0.0",
         "@types/vinyl-buffer": "^1.0.0",
         "@types/vinyl-source-stream": "^0.0.30",
-        "@userscripters/generate-headers": "^2.7.5",
+        "@userscripters/generate-headers": "^2.8.0",
         "@userscripters/generate-readme": "^2.1.1",
         "browserify": "^17.0.0",
         "chai": "^4.3.4",
@@ -377,18 +377,18 @@
       "dev": true
     },
     "node_modules/@userscripters/generate-headers": {
-      "version": "2.7.5",
-      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.7.5/41f775ffccb2b5a0b39729c21e01a1ac04a253ed6d25d29aab1ed294b8f35a49",
-      "integrity": "sha512-emLhV+uSAOSTYzAi/gSNDaQZlyHOKKmVhyf4hu2t5/do5m6fKhzzsctW10jROVsUmQ+9FuDT+q7M6ofz0RTMoA==",
+      "version": "2.8.0",
+      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.8.0/69acf2201a5da9ac46d5838e105ee5760a994442faf011cb271c3f8f5511e280",
+      "integrity": "sha512-xj9OX0GzGR3KK/ZkWnW3tDAOHtBExys73/RmC464jcJYrK54nxgrI3WK6pvyva3jn3Xhy8QhY1a7QL5goKyvow==",
       "dev": true,
       "license": "GPL-3.0-or-later",
       "dependencies": {
         "chalk": "^4.1.2",
         "got": "^11.8.3",
-        "jsdom": "^18.1.1",
+        "jsdom": "^19.0.0",
         "semver": "^7.3.5",
         "validator": "^13.7.0",
-        "yargs": "^17.2.1"
+        "yargs": "^17.3.1"
       },
       "bin": {
         "generate": "dist/index.js"
@@ -5099,9 +5099,9 @@
       }
     },
     "node_modules/jsdom": {
-      "version": "18.1.1",
-      "resolved": "https://registry.npmjs.org/jsdom/-/jsdom-18.1.1.tgz",
-      "integrity": "sha512-NmJQbjQ/gpS/1at/ce3nCx89HbXL/f5OcenBe8wU1Eik0ROhyUc3LtmG3567dEHAGXkN8rmILW/qtCOPxPHQJw==",
+      "version": "19.0.0",
+      "resolved": "https://registry.npmjs.org/jsdom/-/jsdom-19.0.0.tgz",
+      "integrity": "sha512-RYAyjCbxy/vri/CfnjUWJQQtZ3LKlLnDqj+9XLNnJPgEGeirZs3hllKR20re8LUZ6o1b1X4Jat+Qd26zmP41+A==",
       "dev": true,
       "dependencies": {
         "abab": "^2.0.5",
@@ -8894,9 +8894,9 @@
       "dev": true
     },
     "node_modules/ws": {
-      "version": "8.4.0",
-      "resolved": "https://registry.npmjs.org/ws/-/ws-8.4.0.tgz",
-      "integrity": "sha512-IHVsKe2pjajSUIl4KYMQOdlyliovpEPquKkqbwswulszzI7r0SfQrxnXdWAEqOlDCLrVSJzo+O1hAwdog2sKSQ==",
+      "version": "8.4.2",
+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.4.2.tgz",
+      "integrity": "sha512-Kbk4Nxyq7/ZWqr/tarI9yIt/+iNNFOjBXEWgTb4ydaNHBNGgvf2QHbS9fdfsndfjFlFwEd4Al+mw83YkaD10ZA==",
       "dev": true,
       "engines": {
         "node": ">=10.0.0"
@@ -9339,17 +9339,17 @@
       "dev": true
     },
     "@userscripters/generate-headers": {
-      "version": "2.7.5",
-      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.7.5/41f775ffccb2b5a0b39729c21e01a1ac04a253ed6d25d29aab1ed294b8f35a49",
-      "integrity": "sha512-emLhV+uSAOSTYzAi/gSNDaQZlyHOKKmVhyf4hu2t5/do5m6fKhzzsctW10jROVsUmQ+9FuDT+q7M6ofz0RTMoA==",
+      "version": "2.8.0",
+      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.8.0/69acf2201a5da9ac46d5838e105ee5760a994442faf011cb271c3f8f5511e280",
+      "integrity": "sha512-xj9OX0GzGR3KK/ZkWnW3tDAOHtBExys73/RmC464jcJYrK54nxgrI3WK6pvyva3jn3Xhy8QhY1a7QL5goKyvow==",
       "dev": true,
       "requires": {
         "chalk": "^4.1.2",
         "got": "^11.8.3",
-        "jsdom": "^18.1.1",
+        "jsdom": "^19.0.0",
         "semver": "^7.3.5",
         "validator": "^13.7.0",
-        "yargs": "^17.2.1"
+        "yargs": "^17.3.1"
       }
     },
     "@userscripters/generate-readme": {
@@ -13109,9 +13109,9 @@
       }
     },
     "jsdom": {
-      "version": "18.1.1",
-      "resolved": "https://registry.npmjs.org/jsdom/-/jsdom-18.1.1.tgz",
-      "integrity": "sha512-NmJQbjQ/gpS/1at/ce3nCx89HbXL/f5OcenBe8wU1Eik0ROhyUc3LtmG3567dEHAGXkN8rmILW/qtCOPxPHQJw==",
+      "version": "19.0.0",
+      "resolved": "https://registry.npmjs.org/jsdom/-/jsdom-19.0.0.tgz",
+      "integrity": "sha512-RYAyjCbxy/vri/CfnjUWJQQtZ3LKlLnDqj+9XLNnJPgEGeirZs3hllKR20re8LUZ6o1b1X4Jat+Qd26zmP41+A==",
       "dev": true,
       "requires": {
         "abab": "^2.0.5",
@@ -16115,9 +16115,9 @@
       "dev": true
     },
     "ws": {
-      "version": "8.4.0",
-      "resolved": "https://registry.npmjs.org/ws/-/ws-8.4.0.tgz",
-      "integrity": "sha512-IHVsKe2pjajSUIl4KYMQOdlyliovpEPquKkqbwswulszzI7r0SfQrxnXdWAEqOlDCLrVSJzo+O1hAwdog2sKSQ==",
+      "version": "8.4.2",
+      "resolved": "https://registry.npmjs.org/ws/-/ws-8.4.2.tgz",
+      "integrity": "sha512-Kbk4Nxyq7/ZWqr/tarI9yIt/+iNNFOjBXEWgTb4ydaNHBNGgvf2QHbS9fdfsndfjFlFwEd4Al+mw83YkaD10ZA==",
       "dev": true,
       "requires": {}
     },

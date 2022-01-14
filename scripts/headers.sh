@@ -1,12 +1,10 @@
 #!/bin/bash
 
 dist="dist"
-output=$dist"/headers.js"
+output=$dist"/main.js"
 
 generate tampermonkey \
     -o $output \
-    -m $(cat .matches)
-
-userscript=$dist"/$(ls $dist -1 | grep -e "main\.js")"
-
-sed -i -e "{1e cat $output; echo; echo" -e "; N}" "$userscript"
+    -m all https://domain/review/suggested-edits/* \
+    -c \
+    --pretty
