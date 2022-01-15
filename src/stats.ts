@@ -4,7 +4,7 @@ import { createItem } from "./dom";
 import {
     getEditAuthorId,
     getSuggestionTotals,
-    SuggestedEditInfo,
+    SuggestedEditInfo
 } from "./getters";
 import { getRejectionCount, RejectionCount } from "./rejections";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
@@ -83,7 +83,14 @@ export const addStatsSidebar = async (cnf: typeof config) => {
     if (!sidebar) return false;
 
     const dialog = document.createElement("div");
-    dialog.classList.add("s-sidebarwidget", "ml24", "mt24");
+    dialog.classList.add(
+        "s-sidebarwidget",
+        "ps-sticky",
+        "t64",
+        "ml24",
+        "mt24",
+        "ws3"
+    );
     dialog.id = `${cnf.ids.sidebar.extra}-${getReviewId()}`;
 
     const header = document.createElement("div");
