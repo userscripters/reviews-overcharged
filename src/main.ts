@@ -18,12 +18,18 @@ type Handler = (
 
 type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
 
-(async () => {
-    const postId = getPostId(config);
+window.addEventListener("load", async () => {
+    const scriptName = "ReviewOvercharged";
 
-    const isExcerptEdit = postId || isExcerpt(config);
+    const postId = await getPostId(config);
+    const isExcerptEdit = isExcerpt(config);
 
-    if (!postId && !isExcerptEdit) return;
+    if (!postId && !isExcerptEdit) {
+        console.debug(
+            `${scriptName} init:\nFound post id: ${!!postId}\nIs excerpt: ${isExcerptEdit}`
+        );
+        return;
+    }
 
     const handlers: Handler[] = [
         moveProgressToTabs,
@@ -83,4 +89,4 @@ type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
     });
 
     obs.observe(document, { subtree: true, childList: true });
-})();
+});
