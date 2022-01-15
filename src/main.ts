@@ -55,7 +55,7 @@ window.addEventListener("load", async () => {
 
     const statusMsg = statuses.reduce(
         (acc, v, i) => `${acc}\n${names[i]} - ${v ? "ok" : "failed"}`,
-        "Status: "
+        `${scriptName} init:`
     );
 
     console.debug(statusMsg);
