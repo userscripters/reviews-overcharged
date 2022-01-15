@@ -32,7 +32,7 @@
         "gulp-rename": "^2.0.0",
         "gulp-typescript": "^6.0.0-alpha.1",
         "gulp-uglify": "^3.0.2",
-        "mocha": "^9.1.3",
+        "mocha": "^9.1.4",
         "ts-node": "^10.4.0",
         "typescript": "^4.5.4",
         "vinyl-buffer": "^1.0.1",
@@ -1512,9 +1512,9 @@
       }
     },
     "node_modules/caniuse-lite": {
-      "version": "1.0.30001298",
-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001298.tgz",
-      "integrity": "sha512-AcKqikjMLlvghZL/vfTHorlQsLDhGRalYf1+GmWCf5SCMziSGjRYQW/JEksj14NaYHIR6KIhrFAy0HV5C25UzQ==",
+      "version": "1.0.30001299",
+      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001299.tgz",
+      "integrity": "sha512-iujN4+x7QzqA2NCSrS5VUy+4gLmRd4xv6vbBBsmfVqTx8bLAD8097euLqQgKxSVLvxjSDcvF1T/i9ocgnUFexw==",
       "dev": true,
       "funding": {
         "type": "opencollective",
@@ -2386,9 +2386,9 @@
       }
     },
     "node_modules/electron-to-chromium": {
-      "version": "1.4.38",
-      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.38.tgz",
-      "integrity": "sha512-WhHt3sZazKj0KK/UpgsbGQnUUoFeAHVishzHFExMxagpZgjiGYSC9S0ZlbhCfSH2L2i+2A1yyqOIliTctMx7KQ==",
+      "version": "1.4.46",
+      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.46.tgz",
+      "integrity": "sha512-UtV0xUA/dibCKKP2JMxOpDtXR74zABevuUEH4K0tvduFSIoxRVcYmQsbB51kXsFTX8MmOyWMt8tuZAlmDOqkrQ==",
       "dev": true
     },
     "node_modules/elliptic": {
@@ -2863,9 +2863,9 @@
       }
     },
     "node_modules/fast-glob": {
-      "version": "3.2.9",
-      "resolved": "https://registry.npmjs.org/fast-glob/-/fast-glob-3.2.9.tgz",
-      "integrity": "sha512-MBwILhhD92sziIrMQwpqcuGERF+BH99ei2a3XsGJuqEKcSycAL+w0HWokFenZXona+kjFr82Lf71eTxNRC06XQ==",
+      "version": "3.2.11",
+      "resolved": "https://registry.npmjs.org/fast-glob/-/fast-glob-3.2.11.tgz",
+      "integrity": "sha512-xrO3+1bxSo3ZVHAnqzyuewYT6aMFHRAd4Kcs92MAonjwQZLsK9d0SF1IyQ3k5PoirxTW0Oe/RqFgMQ6TcNE5Ew==",
       "dev": true,
       "dependencies": {
         "@nodelib/fs.stat": "^2.0.2",
@@ -5833,9 +5833,9 @@
       "dev": true
     },
     "node_modules/mocha": {
-      "version": "9.1.3",
-      "resolved": "https://registry.npmjs.org/mocha/-/mocha-9.1.3.tgz",
-      "integrity": "sha512-Xcpl9FqXOAYqI3j79pEtHBBnQgVXIhpULjGQa7DVb0Po+VzmSIK9kanAiWLHoRR/dbZ2qpdPshuXr8l1VaHCzw==",
+      "version": "9.1.4",
+      "resolved": "https://registry.npmjs.org/mocha/-/mocha-9.1.4.tgz",
+      "integrity": "sha512-+q2aV5VlJZuLgCWoBvGI5zEwPF9eEI0kr/sAA9Jm4xMND7RfIEyF8JE7C0JIg8WXRG+P1sdIAb5ccoHPlXLzcw==",
       "dev": true,
       "dependencies": {
         "@ungap/promise-all-settled": "1.1.2",
@@ -6748,9 +6748,9 @@
       "dev": true
     },
     "node_modules/postcss/node_modules/nanoid": {
-      "version": "3.1.30",
-      "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.1.30.tgz",
-      "integrity": "sha512-zJpuPDwOv8D2zq2WRoMe1HsfZthVewpel9CAvTfc/2mBD1uUT/agc5f7GHGWXlYkFvi1mVxe4IjvP2HNrop7nQ==",
+      "version": "3.1.32",
+      "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.1.32.tgz",
+      "integrity": "sha512-F8mf7R3iT9bvThBoW4tGXhXFHCctyCiUUPrWF8WaTqa3h96d9QybkSeba43XVOOE3oiLfkVDe4bT8MeGmkrTxw==",
       "dev": true,
       "bin": {
         "nanoid": "bin/nanoid.cjs"
@@ -7681,6 +7681,7 @@
       "version": "0.5.3",
       "resolved": "https://registry.npmjs.org/source-map-resolve/-/source-map-resolve-0.5.3.tgz",
       "integrity": "sha512-Htz+RnsXWk5+P2slx5Jh3Q66vhQj1Cllm0zvnaY98+NFx+Dv2CF/f5O/t8x+KaNdrdIAsruNzoh/KpialbqAnw==",
+      "deprecated": "See https://github.com/lydell/source-map-resolve#deprecated",
       "dev": true,
       "dependencies": {
         "atob": "^2.1.2",
@@ -7694,6 +7695,7 @@
       "version": "0.4.1",
       "resolved": "https://registry.npmjs.org/source-map-url/-/source-map-url-0.4.1.tgz",
       "integrity": "sha512-cPiFOTLUKvJFIg4SKVScy4ilPPW6rFgMgfuZJPNoDuMs3nC1HbMUycBoJw77xFIp6z1UJQJOfx6C9GMH80DiTw==",
+      "deprecated": "See https://github.com/lydell/source-map-url#deprecated",
       "dev": true
     },
     "node_modules/sparkles": {
@@ -10330,9 +10332,9 @@
       "dev": true
     },
     "caniuse-lite": {
-      "version": "1.0.30001298",
-      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001298.tgz",
-      "integrity": "sha512-AcKqikjMLlvghZL/vfTHorlQsLDhGRalYf1+GmWCf5SCMziSGjRYQW/JEksj14NaYHIR6KIhrFAy0HV5C25UzQ==",
+      "version": "1.0.30001299",
+      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001299.tgz",
+      "integrity": "sha512-iujN4+x7QzqA2NCSrS5VUy+4gLmRd4xv6vbBBsmfVqTx8bLAD8097euLqQgKxSVLvxjSDcvF1T/i9ocgnUFexw==",
       "dev": true
     },
     "chai": {
@@ -11048,9 +11050,9 @@
       }
     },
     "electron-to-chromium": {
-      "version": "1.4.38",
-      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.38.tgz",
-      "integrity": "sha512-WhHt3sZazKj0KK/UpgsbGQnUUoFeAHVishzHFExMxagpZgjiGYSC9S0ZlbhCfSH2L2i+2A1yyqOIliTctMx7KQ==",
+      "version": "1.4.46",
+      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.46.tgz",
+      "integrity": "sha512-UtV0xUA/dibCKKP2JMxOpDtXR74zABevuUEH4K0tvduFSIoxRVcYmQsbB51kXsFTX8MmOyWMt8tuZAlmDOqkrQ==",
       "dev": true
     },
     "elliptic": {
@@ -11446,9 +11448,9 @@
       }
     },
     "fast-glob": {
-      "version": "3.2.9",
-      "resolved": "https://registry.npmjs.org/fast-glob/-/fast-glob-3.2.9.tgz",
-      "integrity": "sha512-MBwILhhD92sziIrMQwpqcuGERF+BH99ei2a3XsGJuqEKcSycAL+w0HWokFenZXona+kjFr82Lf71eTxNRC06XQ==",
+      "version": "3.2.11",
+      "resolved": "https://registry.npmjs.org/fast-glob/-/fast-glob-3.2.11.tgz",
+      "integrity": "sha512-xrO3+1bxSo3ZVHAnqzyuewYT6aMFHRAd4Kcs92MAonjwQZLsK9d0SF1IyQ3k5PoirxTW0Oe/RqFgMQ6TcNE5Ew==",
       "dev": true,
       "requires": {
         "@nodelib/fs.stat": "^2.0.2",
@@ -13775,9 +13777,9 @@
       "dev": true
     },
     "mocha": {
-      "version": "9.1.3",
-      "resolved": "https://registry.npmjs.org/mocha/-/mocha-9.1.3.tgz",
-      "integrity": "sha512-Xcpl9FqXOAYqI3j79pEtHBBnQgVXIhpULjGQa7DVb0Po+VzmSIK9kanAiWLHoRR/dbZ2qpdPshuXr8l1VaHCzw==",
+      "version": "9.1.4",
+      "resolved": "https://registry.npmjs.org/mocha/-/mocha-9.1.4.tgz",
+      "integrity": "sha512-+q2aV5VlJZuLgCWoBvGI5zEwPF9eEI0kr/sAA9Jm4xMND7RfIEyF8JE7C0JIg8WXRG+P1sdIAb5ccoHPlXLzcw==",
       "dev": true,
       "requires": {
         "@ungap/promise-all-settled": "1.1.2",
@@ -14466,9 +14468,9 @@
       },
       "dependencies": {
         "nanoid": {
-          "version": "3.1.30",
-          "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.1.30.tgz",
-          "integrity": "sha512-zJpuPDwOv8D2zq2WRoMe1HsfZthVewpel9CAvTfc/2mBD1uUT/agc5f7GHGWXlYkFvi1mVxe4IjvP2HNrop7nQ==",
+          "version": "3.1.32",
+          "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.1.32.tgz",
+          "integrity": "sha512-F8mf7R3iT9bvThBoW4tGXhXFHCctyCiUUPrWF8WaTqa3h96d9QybkSeba43XVOOE3oiLfkVDe4bT8MeGmkrTxw==",
           "dev": true
         }
       }
