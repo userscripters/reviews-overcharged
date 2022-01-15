@@ -68,7 +68,7 @@ export const config = {
             },
         },
         content: {
-            typeHint: ".js-review-content h2",
+            typeHint: ".js-review-content .fs-title",
             postSummary: ".s-post-summary",
         },
         title: {
