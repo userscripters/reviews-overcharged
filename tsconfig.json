@@ -3,15 +3,17 @@
     "strict": true,
     "target": "ES2019",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["@userscripters/stackexchange-global-types"],
     "outDir": "dist",
     "noImplicitReturns": true,
     "removeComments": true,
     "moduleResolution": "node",
     "skipDefaultLibCheck": true,
+    "esModuleInterop": true,
     "module": "none",
     "allowJs": true,
     "checkJs": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
   }
 }

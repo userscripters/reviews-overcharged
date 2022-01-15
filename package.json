@@ -5,9 +5,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf dist && gulp build",
-    "postbuild": "npm run headers-tm && npm run readme",
-    "headers-tm": "bash ./scripts/headers.sh",
-    "readme": "generate-readme"
+    "postbuild": "npm run headers && npm run readme",
+    "headers": "bash ./scripts/headers.sh",
+    "readme": "generate-readme",
+    "postversion": "npm run build && git add . && git commit --amend --no-edit"
   },
   "keywords": [
     "reviews",
@@ -15,7 +16,10 @@
     "userscripts",
     "suggested-edits"
   ],
-  "author": "Oleg Valter",
+  "author": {
+    "name": "Oleg Valter",
+    "email": "oleg.a.valter@gmail.com"
+  },
   "contributors": [],
   "devDependencies": {
     "@types/browserify": "^12.0.37",
@@ -28,8 +32,9 @@
     "@types/mocha": "^9.0.0",
     "@types/vinyl-buffer": "^1.0.0",
     "@types/vinyl-source-stream": "^0.0.30",
-    "@userscripters/generate-headers": "^2.8.0",
+    "@userscripters/generate-headers": "^2.8.1",
     "@userscripters/generate-readme": "^2.1.1",
+    "@userscripters/stackexchange-global-types": "^2.4.0",
     "browserify": "^17.0.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",

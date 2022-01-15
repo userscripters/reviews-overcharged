@@ -1,11 +1,11 @@
-import * as browserify from "browserify";
-import * as del from "del";
+import browserify from "browserify";
+import del from "del";
 import * as GulpClient from "gulp";
 import { dest, src } from "gulp";
 import * as ts from "gulp-typescript";
-import * as ug from "gulp-uglify";
-import * as buffer from "vinyl-buffer";
-import * as source from "vinyl-source-stream";
+import ug from "gulp-uglify";
+import buffer from "vinyl-buffer";
+import source from "vinyl-source-stream";
 
 const project = ts.createProject("./src/tsconfig.json");
 
