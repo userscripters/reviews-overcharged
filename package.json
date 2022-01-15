@@ -1,6 +1,6 @@
 {
   "name": "reviews-overcharged",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Quality of life improvements for review queues",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
