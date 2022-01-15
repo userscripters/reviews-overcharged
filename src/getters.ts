@@ -1,4 +1,5 @@
 import { config } from "./config";
+import { waitForSelector } from "./domUtils";
 import { handleMatchFailure, safeMatch } from "./utils";
 
 export type SuggestedEditInfo = {
@@ -14,18 +15,14 @@ export type SuggestedEditInfo = {
     title: string;
 };
 
-export const getAnswerId = (selector: string) => {
-    const link = document.querySelector<HTMLAnchorElement>(selector);
-    return safeMatch(
-        link?.href || "",
-        /\/questions\/\d+\/[\w-]+\/(\d+)/,
-        ""
-    )[0];
+export const getAnswerId = async (selector: string) => {
+    const [link] = await waitForSelector<HTMLAnchorElement>(selector);
+    return safeMatch(link?.href || "", /\/questions\/\d+\/[\w-]+\/(\d+)/)[0];
 };
 
-export const getQuestionId = (selector: string) => {
-    const link = document.querySelector<HTMLAnchorElement>(selector);
-    return safeMatch(link?.href || "", /\/questions\/(\d+)/, "")[0];
+export const getQuestionId = async (selector: string) => {
+    const [link] = await waitForSelector<HTMLAnchorElement>(selector);
+    return safeMatch(link?.href || "", /\/questions\/(\d+)/)[0];
 };
 
 export const getExcerptName = (selector: string) => {
@@ -33,11 +30,18 @@ export const getExcerptName = (selector: string) => {
     return safeMatch(link?.href || "", /\/tags\/(.+)\/info/)[0];
 };
 
-export const getPostId = ({
-    selectors: {
-        page: { links },
-    },
-}: typeof config) => getAnswerId(links.answer) || getQuestionId(links.question);
+export const getEditType = async ({ selectors }: typeof config) => {
+    const [{ textContent }] = await waitForSelector<HTMLElement>(selectors.content.typeHint);
+    return safeMatch(textContent || "", /(question|answer)\s+edit/)[0];
+};
+
+export const getPostId = async (cnf: typeof config) => {
+    const type = await getEditType(config);
+    const { selectors: { page: { links } } } = cnf;
+    return type === "question" ?
+        getQuestionId(links.question) :
+        getAnswerId(links.answer);
+};
 
 export const getEditAuthorId = () => {
     const postWrapSelector = config.selectors.info.post.wrapper;
