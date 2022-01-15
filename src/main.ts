@@ -31,24 +31,23 @@ window.addEventListener("load", async () => {
         return;
     }
 
-    const handlers: Handler[] = [
+    const handlerMap: Record<string, Handler> = {
         moveProgressToTabs,
         optimizePageTitle,
         decolorDiff,
         addStatsSidebar,
-    ];
+    };
+
+    if (!isExcerptEdit) {
+        Object.assign(handlerMap, { addAuditNotification });
+    }
+
+    const handlers: Handler[] = Object.values(handlerMap);
 
     const cleanups: Cleaner[] = [removeExistingSidebars];
 
     //modules + ES5 leads to .name being inaccessible
-    const names = Object.keys({
-        moveProgressToTabs,
-        optimizePageTitle,
-        decolorDiff,
-        addStatsSidebar,
-    });
-
-    if (!isExcerptEdit) handlers.push(addAuditNotification);
+    const names = Object.keys(handlerMap);
 
     const promises = handlers.map((handler) => handler(config, postId));
 
