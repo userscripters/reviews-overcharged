@@ -29,7 +29,7 @@
     "@types/gulp-concat": "^0.0.33",
     "@types/gulp-rename": "^2.0.1",
     "@types/gulp-uglify": "^3.0.7",
-    "@types/mocha": "^9.1.0",
+    "@types/mocha": "^9.1.1",
     "@types/vinyl-buffer": "^1.0.0",
     "@types/vinyl-source-stream": "^0.0.30",
     "@userscripters/generate-headers": "^2.10.0",
