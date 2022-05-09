@@ -3,8 +3,8 @@
 dist="dist"
 output=$dist"/main.js"
 
-generate tampermonkey \
+generate-headers tampermonkey \
     -o $output \
-    -m all https://domain/review/suggested-edits/* \
-    -c \
+    -m all meta "https://domain/review/suggested-edits/*" \
+    --collapse \
     --pretty

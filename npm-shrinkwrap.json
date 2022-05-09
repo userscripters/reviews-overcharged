@@ -19,7 +19,7 @@
         "@types/mocha": "^9.1.1",
         "@types/vinyl-buffer": "^1.0.0",
         "@types/vinyl-source-stream": "^0.0.30",
-        "@userscripters/generate-headers": "^2.12.0",
+        "@userscripters/generate-headers": "^2.12.1",
         "@userscripters/generate-readme": "^2.3.1",
         "@userscripters/stackexchange-global-types": "^2.4.1",
         "browserify": "^17.0.0",
@@ -429,9 +429,9 @@
       "dev": true
     },
     "node_modules/@userscripters/generate-headers": {
-      "version": "2.12.0",
-      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.12.0/9cc30484a34ea1b2561c02511176c72c0e2519cb7852ee4b10a75d2836a1ba99",
-      "integrity": "sha512-qjAp9flOHHbRKHg8Z9LSvzBH1FF9vUf95Nt4e/Td+sGAtCVEiKx7pVFd33gVsfu6vX6rDkCEZb4NWuauyMXjpA==",
+      "version": "2.12.1",
+      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.12.1/b9ee284d25202f6ec24e9b62cb87b299dd1639ff9a1acbbc2c2624125017349c",
+      "integrity": "sha512-8S7b+wDiCKg0+ubM+/S0Chh2syO4+FDhgpfKPFhbzX39Plac7lGeYOErGv0/NPsVnR8s7nl85Ghhi1lxo5+ttw==",
       "dev": true,
       "license": "GPL-3.0-or-later",
       "dependencies": {
@@ -443,7 +443,7 @@
         "yargs": "^17.4.1"
       },
       "bin": {
-        "generate": "dist/index.js"
+        "generate-headers": "dist/index.js"
       }
     },
     "node_modules/@userscripters/generate-readme": {
@@ -9552,9 +9552,9 @@
       "dev": true
     },
     "@userscripters/generate-headers": {
-      "version": "2.12.0",
-      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.12.0/9cc30484a34ea1b2561c02511176c72c0e2519cb7852ee4b10a75d2836a1ba99",
-      "integrity": "sha512-qjAp9flOHHbRKHg8Z9LSvzBH1FF9vUf95Nt4e/Td+sGAtCVEiKx7pVFd33gVsfu6vX6rDkCEZb4NWuauyMXjpA==",
+      "version": "2.12.1",
+      "resolved": "https://npm.pkg.github.com/download/@userscripters/generate-headers/2.12.1/b9ee284d25202f6ec24e9b62cb87b299dd1639ff9a1acbbc2c2624125017349c",
+      "integrity": "sha512-8S7b+wDiCKg0+ubM+/S0Chh2syO4+FDhgpfKPFhbzX39Plac7lGeYOErGv0/NPsVnR8s7nl85Ghhi1lxo5+ttw==",
       "dev": true,
       "requires": {
         "chalk": "^4.1.2",
