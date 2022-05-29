@@ -1,18 +1,17 @@
-import { getSuggestionsByPost } from "./api";
 import { config } from "./config";
 
-export const addAuditNotification = async (
-    { selectors: { content } }: typeof config,
-    postId: string
+/**
+ * @summary adds a notification that this is a review audit
+ * @param cnf script configuration
+ */
+export const addAuditNotification = (
+    cnf: typeof config,
 ) => {
+    const { selectors: { content } } = cnf;
+
     const auditId = "audit_notification";
 
     if (document.getElementById(auditId)) return true; //early exit if already added
-
-    const { length } = await getSuggestionsByPost(postId, {
-        type: "pending",
-    });
-    if (length) return true;
 
     const editTypeHint = document.querySelector(content.typeHint);
     const summary = document.querySelector(content.postSummary);
