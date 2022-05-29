@@ -55,9 +55,9 @@ export const createEditorStatsItem = (
     }
 
     itemParams.items.push(
-        `Approved: ${approved} (${toPercent(ofApproved)})`,
-        `Rejected: ${rejected} (${toPercent(ofRejected)})`,
-        `Pending: ${pending} (${toPercent(ofPending)})`,
+        `Approved: ${approved} (${toPercent(ofApproved, 2)})`,
+        `Rejected: ${rejected} (${toPercent(ofRejected, 2)})`,
+        `Pending: ${pending} (${toPercent(ofPending, 2)})`,
         `Of total: ${total}`,
         `Ratio: ${approvedToRejected.toFixed(1)}`
     );
