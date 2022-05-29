@@ -33,8 +33,12 @@ export const getQuestionId = async (selector: string) => {
     return safeMatch(link?.href || "", /\/questions\/(\d+)/)[0];
 };
 
-export const getExcerptName = (selector: string) => {
-    const link = document.querySelector<HTMLAnchorElement>(selector);
+/**
+ * @summary gets tag name from review item title
+ * @param selector element selector
+ */
+export const getTagName = async (selector: string) => {
+    const [link] = await waitForSelector<HTMLAnchorElement>(selector, 1e3);
     return safeMatch(link?.href || "", /\/tags\/(.+)\/info/)[0];
 };
 

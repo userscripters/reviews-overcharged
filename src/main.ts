@@ -3,7 +3,7 @@ import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { getPostId } from "./getters";
-import { isExcerpt } from "./guards";
+import { isTagEdit } from "./guards";
 // import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
 import { addStatsSidebar } from "./stats";
@@ -13,7 +13,7 @@ import { optimizePageTitle } from "./title";
 
 type Handler = (
     cnf: typeof config,
-    postId: string
+    postId?: string
 ) => boolean | Promise<boolean>;
 
 type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
@@ -21,13 +21,18 @@ type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
 window.addEventListener("load", async () => {
     const scriptName = "ReviewOvercharged";
 
-    const postId = await getPostId(config);
-    const isExcerptEdit = isExcerpt(config);
+    const isTagEditItem = await isTagEdit(config);
+    if (!isTagEditItem) {
+        console.debug(`[${scriptName}] review item is not a tag wiki excerpt edit`);
+    }
 
-    if (!postId && !isExcerptEdit) {
-        console.debug(
-            `${scriptName} init:\nFound post id: ${!!postId}\nIs excerpt: ${isExcerptEdit}`
-        );
+    const postId = isTagEditItem ? void 0 : await getPostId(config);
+    if (!postId) {
+        console.debug(`[${scriptName}] review item is not a post edit`);
+    }
+
+    if (!isTagEditItem && !postId) {
+        console.debug(`[${scriptName}] unknown review item type`);
         return;
     }
 
@@ -38,7 +43,7 @@ window.addEventListener("load", async () => {
         addStatsSidebar,
     };
 
-    if (!isExcerptEdit) {
+    if (!isTagEditItem) {
         Object.assign(handlerMap, { addAuditNotification });
     }
 
