@@ -1,9 +1,10 @@
+import { SuggestedEdit } from "@userscripters/stackexchange-api-types";
+import { getSuggestionInfo } from "./api.js";
 import { addAuditNotification } from "./audits";
 import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
-import { getPostId } from "./getters";
-import { isTagEdit } from "./guards";
+import { isTagEdit } from "./guards.js";
 // import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
 import { addStatsSidebar } from "./stats";
@@ -13,50 +14,68 @@ import { optimizePageTitle } from "./title";
 
 type Handler = (
     cnf: typeof config,
-    postId?: string
+    info?: SuggestedEdit
 ) => boolean | Promise<boolean>;
 
 type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
 
 window.addEventListener("load", async () => {
+
+    let suggestedEditId: number | undefined;
+    $(document).ajaxComplete((_, xhr) => {
+        const { responseJSON } = xhr;
+        if (typeof responseJSON === "object" && responseJSON) {
+            suggestedEditId = responseJSON.suggestedEditId;
+        }
+    });
+
     const scriptName = "ReviewOvercharged";
 
-    const isTagEditItem = await isTagEdit(config);
-    if (!isTagEditItem) {
-        console.debug(`[${scriptName}] review item is not a tag wiki excerpt edit`);
+    class HandlerManager {
+        constructor(public handlers: Record<string, Handler>) { }
+
+        get names() {
+            const { handlers } = this;
+            return Object.keys(handlers);
+        }
+
+        get actors() {
+            const { handlers } = this;
+            return Object.values(handlers);
+        }
+
+        runAll(cnf: typeof config) {
+            const { actors } = this;
+            return Promise.all(actors.map((v) => v(cnf)));
+        }
     }
 
-    const postId = isTagEditItem ? void 0 : await getPostId(config);
-    if (!postId) {
-        console.debug(`[${scriptName}] review item is not a post edit`);
-    }
-
-    if (!isTagEditItem && !postId) {
-        console.debug(`[${scriptName}] unknown review item type`);
-        return;
-    }
-
-    const handlerMap: Record<string, Handler> = {
+    const manager = new HandlerManager({
         moveProgressToTabs,
         optimizePageTitle,
         decolorDiff,
-        addStatsSidebar,
-    };
+    });
 
-    if (!isTagEditItem) {
-        Object.assign(handlerMap, { addAuditNotification });
+    const isTagItem = await isTagEdit(config);
+
+    const item = isTagItem || !suggestedEditId ? void 0 : await getSuggestionInfo(suggestedEditId);
+
+    console.debug(`[${scriptName}] suggested edit id: ${suggestedEditId}`);
+
+    if (!item && !isTagItem) {
+        await manager.runAll(config);
+        addAuditNotification(config);
+        return;
     }
 
-    const handlers: Handler[] = Object.values(handlerMap);
+    //modules + ES5 leads to .name being inaccessible
+    Object.assign(manager.handlers, { addStatsSidebar });
 
     const cleanups: Cleaner[] = [removeExistingSidebars];
 
-    //modules + ES5 leads to .name being inaccessible
-    const names = Object.keys(handlerMap);
+    const { names } = manager;
 
-    const promises = handlers.map((handler) => handler(config, postId));
-
-    const statuses = await Promise.all(promises);
+    const statuses = await manager.runAll(config);
 
     const statusMsg = statuses.reduce(
         (acc, v, i) => `${acc}\n${names[i]} - ${v ? "ok" : "failed"}`,
@@ -84,10 +103,7 @@ window.addEventListener("load", async () => {
 
         if (!newTaskRecord) return;
 
-        await Promise.all([
-            addStatsSidebar(config),
-            moveProgressToTabs(config),
-        ]);
+        await manager.runAll(config);
 
         await Promise.all(cleanups.map((handler) => handler(config)));
     });
