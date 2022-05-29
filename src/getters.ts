@@ -15,13 +15,21 @@ export type SuggestedEditInfo = {
     title: string;
 };
 
+/**
+ * @summary gets answer id
+ * @param selector element to wait for
+ */
 export const getAnswerId = async (selector: string) => {
-    const [link] = await waitForSelector<HTMLAnchorElement>(selector);
+    const [link] = await waitForSelector<HTMLAnchorElement>(selector, 1e4);
     return safeMatch(link?.href || "", /\/questions\/\d+\/[\w-]+\/(\d+)/)[0];
 };
 
+/**
+ * @summary gets question id
+ * @param selector element to wait for
+ */
 export const getQuestionId = async (selector: string) => {
-    const [link] = await waitForSelector<HTMLAnchorElement>(selector);
+    const [link] = await waitForSelector<HTMLAnchorElement>(selector, 1e4);
     return safeMatch(link?.href || "", /\/questions\/(\d+)/)[0];
 };
 
@@ -30,8 +38,12 @@ export const getExcerptName = (selector: string) => {
     return safeMatch(link?.href || "", /\/tags\/(.+)\/info/)[0];
 };
 
+/**
+ * @summary gets edit type (question or answer)
+ * @param config script configuration
+ */
 export const getEditType = async ({ selectors }: typeof config) => {
-    const [{ textContent }] = await waitForSelector<HTMLElement>(selectors.content.typeHint);
+    const [{ textContent }] = await waitForSelector<HTMLElement>(selectors.content.typeHint, 1e4);
     return safeMatch(textContent || "", /(question|answer)\s+edit/)[0];
 };
 
