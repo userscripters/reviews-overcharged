@@ -1,13 +1,6 @@
+import { SuggestedEdit, Wrappers } from "@userscripters/stackexchange-api-types";
 import { API_BASE, API_VER, config, DEF_SITE } from "./config";
-import { SuggestedEditInfo } from "./getters";
 import { toApiDate } from "./utils";
-
-export type StackAPIBatchResponse<T> = {
-    has_more: boolean;
-    items: T[];
-    quota_max: number;
-    quota_remaining: number;
-};
 
 export type CommonOptions = {
     site?: string;
@@ -16,7 +9,7 @@ export type CommonOptions = {
 export type SuggestedEditStatus = "approved" | "rejected" | "all" | "pending";
 
 type SuggestedEditsByPostOptions = {
-    type: SuggestedEditStatus;
+    type?: SuggestedEditStatus;
 } & CommonOptions;
 
 type GetSuggestedEditsStatsOptions = {
@@ -26,24 +19,55 @@ type GetSuggestedEditsStatsOptions = {
 };
 
 type SuggestedEditsFilters = {
-    [P in SuggestedEditStatus]?: (val: SuggestedEditInfo) => boolean;
+    [P in SuggestedEditStatus]?: (val: SuggestedEdit) => boolean;
 };
 
-export const getSuggestionsByPost = async (
-    postId: string,
-    { site = DEF_SITE, type = "all" }: SuggestedEditsByPostOptions
+/**
+ * @see https://api.stackexchange.com/docs/suggested-edits-by-ids
+ *
+ * @summary gets information about the suggested edit
+ * @param itemId id of the suggested edit item
+ * @param options request configuration
+ */
+export const getSuggestionInfo = async (
+    itemId: string | number,
+    options: CommonOptions = {}
 ) => {
-    const url = new URL(
-        `${API_BASE}/${API_VER}/posts/${postId}/suggested-edits`
-    );
+    const { site = DEF_SITE } = options;
 
+    const url = new URL(`${API_BASE}/${API_VER}/suggested-edits/${itemId}`);
     url.search = new URLSearchParams({ site }).toString();
 
     const res = await fetch(url.toString());
+    if (!res.ok) return;
 
+    const { items } = <Wrappers.CommonWrapperObject<SuggestedEdit>>(
+        await res.json()
+    );
+
+    return items[0];
+};
+
+/**
+ * @see https://api.stackexchange.com/docs/posts-on-suggested-edits
+ *
+ * @summary gets suggested edits by post
+ * @param postId id of the post to get suggested edits for
+ * @param options request configuration
+ */
+export const getSuggestionsByPost = async (
+    postId: string,
+    options: SuggestedEditsByPostOptions = {}
+) => {
+    const { site = DEF_SITE, type = "all" } = options;
+
+    const url = new URL(`${API_BASE}/${API_VER}/posts/${postId}/suggested-edits`);
+    url.search = new URLSearchParams({ site }).toString();
+
+    const res = await fetch(url.toString());
     if (!res.ok) return [];
 
-    const { items } = <StackAPIBatchResponse<SuggestedEditInfo>>(
+    const { items } = <Wrappers.CommonWrapperObject<SuggestedEdit>>(
         await res.json()
     );
 
@@ -82,7 +106,7 @@ export const getSuggestionsUserStats = async (
     const res = await fetch(url.toString());
     if (!res.ok) return [];
 
-    const { items }: StackAPIBatchResponse<SuggestedEditInfo> =
+    const { items }: Wrappers.CommonWrapperObject<SuggestedEdit> =
         await res.json();
 
     return items;

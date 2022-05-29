@@ -1,21 +1,18 @@
+import { SuggestedEdit, User } from "@userscripters/stackexchange-api-types";
 import { getSuggestionsUserStats } from "./api";
 import { config } from "./config";
 import { createItem } from "./dom";
-import {
-    getEditAuthorId,
-    getSuggestionTotals,
-    SuggestedEditInfo
-} from "./getters";
+import { getEditAuthorId, getSuggestionTotals } from "./getters";
 import { getRejectionCount, RejectionCount } from "./rejections";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
-import { getUserInfo, UserInfo } from "./users";
+import { getUserInfo } from "./users";
 import { getReviewId, scase, toPercent } from "./utils";
 
 export const createEditAuthorItem = ({
     display_name,
     reputation,
     link,
-}: UserInfo) => {
+}: User) => {
     const namePar = p(`Name: `);
     namePar.append(a(link, display_name));
 
@@ -28,8 +25,8 @@ export const createEditAuthorItem = ({
 };
 
 export const createEditorStatsItem = (
-    { link }: UserInfo,
-    suggestions: SuggestedEditInfo[]
+    { link }: User,
+    suggestions: SuggestedEdit[]
 ) => {
     const {
         approved,

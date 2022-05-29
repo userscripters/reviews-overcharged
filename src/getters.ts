@@ -1,19 +1,7 @@
 import { config } from "./config";
 import { waitForSelector } from "./domUtils";
 import { handleMatchFailure, safeMatch } from "./utils";
-
-export type SuggestedEditInfo = {
-    approval_date?: number;
-    comment: string;
-    creation_date: number;
-    post_id: number;
-    post_type: "question" | "answer" | "article";
-    proposing_user?: {}; //TODO: expand
-    rejection_date?: string;
-    suggested_edit_id: number;
-    tags: string[];
-    title: string;
-};
+import { SuggestedEdit } from "@userscripters/stackexchange-api-types";
 
 /**
  * @summary gets answer id
@@ -96,7 +84,7 @@ type EditorStats = {
     total: number;
 };
 
-export const getSuggestionTotals = (suggestions: SuggestedEditInfo[]) => {
+export const getSuggestionTotals = (suggestions: SuggestedEdit[]) => {
     const stats: EditorStats = {
         get ratio() {
             const { approved, pending, rejected, total } = this;
