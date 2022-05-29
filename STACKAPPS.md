@@ -4,7 +4,7 @@ script reviews
 
 
 <!-- thumbnail:  -->
-<!-- version: 1.1.1 -->
+<!-- version: 2.0.0 -->
 <!-- tag: script -->
 <!-- excerpt: Quality of life improvements for review queues -->
 
@@ -19,9 +19,9 @@ The script is licensed under the [GPL-3.0-or-later](https://spdx.org/licenses/GP
 
 ### Download
 
-Latest version: 1.1.1
+Latest version: 2.0.0
 
-[Install](https://github.com/userscripters/reviews-overcharged/raw/master/dist/modern/index.user.js) | [Minified](https://github.com/userscripters/reviews-overcharged/raw/master/dist/modern/index.min.user.js)
+[Install](https://github.com/userscripters/reviews-overcharged/raw/master/dist/modern/index.user.js)
 
 ### Platform
 
@@ -35,7 +35,7 @@ Version number means "last tested on":
 
 | Version    | Description |
 | ---------- | ----------- |
-| 1.1.1 |             |
+| 2.0.0 |             |
 
 ## Contact
 

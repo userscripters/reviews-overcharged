@@ -6,7 +6,7 @@
 | Name | Reviews-overcharged |
 | Description | Quality of life improvements for review queues |
 | License | [GPL-3.0-or-later](https://spdx.org/licenses/GPL-3.0-or-later) |
-| Version | 1.1.1 |
+| Version | 2.0.0 |
 
 
 # Support

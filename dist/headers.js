@@ -27,5 +27,5 @@
 // @run-at          document-start
 // @source          git+https://github.com/userscripters/reviews-overcharged.git
 // @supportURL      https://github.com/userscripters/reviews-overcharged/issues
-// @version         1.1.1
+// @version         2.0.0
 // ==/UserScript==
