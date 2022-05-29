@@ -1,7 +1,7 @@
+import { SuggestedEdit } from "@userscripters/stackexchange-api-types";
 import { config } from "./config";
 import { waitForSelector } from "./domUtils";
 import { handleMatchFailure, safeMatch } from "./utils";
-import { SuggestedEdit } from "@userscripters/stackexchange-api-types";
 
 /**
  * @summary gets answer id

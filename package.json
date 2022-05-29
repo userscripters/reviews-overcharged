@@ -1,64 +1,70 @@
 {
-  "name": "reviews-overcharged",
-  "version": "1.1.1",
-  "description": "Quality of life improvements for review queues",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rm -rf dist && gulp build",
-    "postbuild": "npm run headers && npm run readme",
-    "headers": "bash ./scripts/headers.sh",
-    "readme": "generate-readme",
-    "postversion": "npm run build && git add . && git commit --amend --no-edit"
-  },
-  "keywords": [
-    "reviews",
-    "stackoverflow",
-    "userscripts",
-    "suggested-edits"
-  ],
-  "author": {
-    "name": "Oleg Valter",
-    "email": "oleg.a.valter@gmail.com"
-  },
-  "contributors": [],
-  "devDependencies": {
-    "@types/browserify": "^12.0.37",
-    "@types/chai": "^4.3.1",
-    "@types/chai-as-promised": "^7.1.5",
-    "@types/gulp": "^4.0.9",
-    "@types/gulp-concat": "^0.0.33",
-    "@types/gulp-rename": "^2.0.1",
-    "@types/gulp-uglify": "^3.0.7",
-    "@types/mocha": "^9.1.1",
-    "@types/vinyl-buffer": "^1.0.0",
-    "@types/vinyl-source-stream": "^0.0.30",
-    "@userscripters/generate-headers": "^3.3.1",
-    "@userscripters/generate-readme": "^2.3.1",
-    "@userscripters/stackexchange-api-types": "^3.4.0",
-    "@userscripters/stackexchange-global-types": "^2.4.2",
-    "browserify": "^17.0.0",
-    "chai": "^4.3.6",
-    "chai-as-promised": "^7.1.1",
-    "del": "^6.1.1",
-    "gulp": "^4.0.2",
-    "gulp-autoprefixer": "^8.0.0",
-    "gulp-inject": "^5.0.5",
-    "gulp-rename": "^2.0.0",
-    "gulp-typescript": "^6.0.0-alpha.1",
-    "gulp-uglify": "^3.0.2",
-    "mocha": "^10.0.0",
-    "ts-node": "^10.8.0",
-    "typescript": "^4.7.2",
-    "vinyl-buffer": "^1.0.1",
-    "vinyl-source-stream": "^2.0.0"
-  },
-  "license": "GPL-3.0-or-later",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/userscripters/reviews-overcharged.git"
-  },
-  "bugs": {
-    "url": "https://github.com/userscripters/reviews-overcharged/issues"
-  },
-  "homepage": "https://github.com/userscripters/reviews-overcharged#readme"
+    "name": "reviews-overcharged",
+    "version": "1.1.1",
+    "description": "Quality of life improvements for review queues",
+    "scripts": {
+        "build": "bash ./scripts/build.sh",
+        "clean": "rm -rf dist/*",
+        "headers-tm": "bash ./scripts/headers.sh",
+        "lint": "eslint src --fix --ext .js,.ts",
+        "postversion": "bash ./scripts/postversion.sh",
+        "prebuild": "npm run lint && npm run clean",
+        "readme": "bash ./scripts/readme.sh",
+        "stackapps": "bash ./scripts/stackapps.sh"
+    },
+    "keywords": [
+        "reviews",
+        "stackoverflow",
+        "userscripts",
+        "suggested-edits"
+    ],
+    "author": {
+        "name": "Oleg Valter",
+        "email": "oleg.a.valter@gmail.com"
+    },
+    "contributors": [],
+    "devDependencies": {
+        "@types/browserify": "^12.0.37",
+        "@types/chai": "^4.3.1",
+        "@types/chai-as-promised": "^7.1.5",
+        "@types/gulp": "^4.0.9",
+        "@types/gulp-concat": "^0.0.33",
+        "@types/gulp-rename": "^2.0.1",
+        "@types/gulp-uglify": "^3.0.7",
+        "@types/mocha": "^9.1.1",
+        "@types/vinyl-buffer": "^1.0.0",
+        "@types/vinyl-source-stream": "^0.0.30",
+        "@typescript-eslint/eslint-plugin": "^5.26.0",
+        "@typescript-eslint/parser": "^5.26.0",
+        "@userscripters/generate-headers": "^3.3.1",
+        "@userscripters/generate-readme": "^2.3.1",
+        "@userscripters/generate-stackapps": "^1.2.0",
+        "@userscripters/stackexchange-api-types": "^3.4.0",
+        "@userscripters/stackexchange-global-types": "^2.4.2",
+        "browserify": "^17.0.0",
+        "chai": "^4.3.6",
+        "chai-as-promised": "^7.1.1",
+        "del": "^6.1.1",
+        "eslint": "^8.16.0",
+        "gulp": "^4.0.2",
+        "gulp-autoprefixer": "^8.0.0",
+        "gulp-inject": "^5.0.5",
+        "gulp-rename": "^2.0.0",
+        "gulp-uglify": "^3.0.2",
+        "mocha": "^10.0.0",
+        "ts-node": "^10.8.0",
+        "tsify": "^5.0.4",
+        "typescript": "^4.7.2",
+        "vinyl-buffer": "^1.0.1",
+        "vinyl-source-stream": "^2.0.0"
+    },
+    "license": "GPL-3.0-or-later",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/userscripters/reviews-overcharged.git"
+    },
+    "bugs": {
+        "url": "https://github.com/userscripters/reviews-overcharged/issues"
+    },
+    "homepage": "https://github.com/userscripters/reviews-overcharged#readme"
 }

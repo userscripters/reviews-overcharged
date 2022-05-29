@@ -1,10 +1,10 @@
 import { SuggestedEdit } from "@userscripters/stackexchange-api-types";
-import { getSuggestionInfo } from "./api.js";
+import { getSuggestionInfo } from "./api";
 import { addAuditNotification } from "./audits";
 import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
-import { isTagEdit } from "./guards.js";
+import { isTagEdit } from "./guards";
 // import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
 import { addStatsSidebar } from "./stats";
