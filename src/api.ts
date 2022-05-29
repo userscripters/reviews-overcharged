@@ -1,5 +1,5 @@
 import { SuggestedEdit, Wrappers } from "@userscripters/stackexchange-api-types";
-import { API_BASE, API_VER, config, DEF_SITE } from "./config";
+import { API_BASE, API_KEY, API_VER, config, DEF_SITE } from "./config";
 import { toApiDate } from "./utils";
 
 export type CommonOptions = {
@@ -36,7 +36,7 @@ export const getSuggestionInfo = async (
     const { site = DEF_SITE } = options;
 
     const url = new URL(`${API_BASE}/${API_VER}/suggested-edits/${itemId}`);
-    url.search = new URLSearchParams({ site }).toString();
+    url.search = new URLSearchParams({ key: API_KEY, site }).toString();
 
     const res = await fetch(url.toString());
     if (!res.ok) return;
@@ -62,7 +62,7 @@ export const getSuggestionsByPost = async (
     const { site = DEF_SITE, type = "all" } = options;
 
     const url = new URL(`${API_BASE}/${API_VER}/posts/${postId}/suggested-edits`);
-    url.search = new URLSearchParams({ site }).toString();
+    url.search = new URLSearchParams({ key: API_KEY, site }).toString();
 
     const res = await fetch(url.toString());
     if (!res.ok) return [];
@@ -91,6 +91,7 @@ export const getSuggestionsUserStats = async (
     const url = new URL(`${API_BASE}/${API_VER}/users/${id}/suggested-edits`);
 
     const params: Record<string, string> = {
+        key: API_KEY,
         site: options.site || DEF_SITE,
     };
 
