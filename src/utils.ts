@@ -18,7 +18,18 @@ export const scase = (word: string) =>
 
 export const toApiDate = (date: Date) => (date.valueOf() / 1e3).toString();
 
-export const toPercent = (ratio: number) => `${Math.trunc(ratio * 100)}%`;
+/**
+ * @summary formats ratio as percentage
+ * @param ratio decimal ratio
+ * @param fractions fractional digits
+ */
+export const toPercent = (ratio: number, fractions = 0) => {
+    const percent = ratio * 100;
+
+    return `${percent.toFixed(
+        percent !== Math.trunc(percent) ? fractions : 0
+    )}%`;
+}
 
 export const trimNumericString = (text: string) => text.replace(/\D/g, "");
 
