@@ -7,6 +7,7 @@ import { decolorDiff } from "./diffs";
 import { isTagEdit } from "./guards";
 // import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
+import { reportHandlersStatus } from "./reports";
 import { addStatsSidebar } from "./stats";
 import { optimizePageTitle } from "./title";
 
@@ -21,11 +22,13 @@ type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
 
 window.addEventListener("load", async () => {
 
+    let isAudit = false;
     let suggestedEditId: number | undefined;
     $(document).ajaxComplete((_, xhr) => {
         const { responseJSON } = xhr;
         if (typeof responseJSON === "object" && responseJSON) {
             suggestedEditId = responseJSON.suggestedEditId;
+            isAudit = responseJSON.isAudit;
         }
     });
 
@@ -63,8 +66,9 @@ window.addEventListener("load", async () => {
     console.debug(`[${scriptName}] suggested edit id: ${suggestedEditId}`);
 
     if (!item && !isTagItem) {
-        await manager.runAll(config);
-        addAuditNotification(config);
+        const statuses = await manager.runAll(config);
+        reportHandlersStatus(scriptName, manager.names, statuses);
+        if (isAudit) addAuditNotification(config);
         return;
     }
 
@@ -73,16 +77,9 @@ window.addEventListener("load", async () => {
 
     const cleanups: Cleaner[] = [removeExistingSidebars];
 
-    const { names } = manager;
-
     const statuses = await manager.runAll(config);
 
-    const statusMsg = statuses.reduce(
-        (acc, v, i) => `${acc}\n${names[i]} - ${v ? "ok" : "failed"}`,
-        `${scriptName} init:`
-    );
-
-    console.debug(statusMsg);
+    reportHandlersStatus(scriptName, manager.names, statuses);
 
     const {
         selectors: {
@@ -103,7 +100,9 @@ window.addEventListener("load", async () => {
 
         if (!newTaskRecord) return;
 
-        await manager.runAll(config);
+        const statuses = await manager.runAll(config);
+        reportHandlersStatus(scriptName, manager.names, statuses);
+        if (isAudit) addAuditNotification(config);
 
         await Promise.all(cleanups.map((handler) => handler(config)));
     });
