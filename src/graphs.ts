@@ -93,7 +93,7 @@ export class Point {
     }
 
     create() {
-        const { colour, type } = this;
+        const { colour, tooltip, type } = this;
 
         const handleMap: {
             circle: () => UtilSVGElement<SVGCircleElement>;
@@ -109,7 +109,11 @@ export class Point {
         const { style } = element;
         style.fill = colour;
 
-
+        if (tooltip) {
+            const title = document.createElementNS<SVGTitleElement>(SVG_NS, "title");
+            title.textContent = tooltip;
+            element.append(title);
+        }
 
         this.element = element;
 
