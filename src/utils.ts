@@ -34,3 +34,9 @@ export const toPercent = (ratio: number, fractions = 0) => {
 export const trimNumericString = (text: string) => text.replace(/\D/g, "");
 
 export const getReviewId = () => last(location.href.split("/"));
+
+/**
+ * @summary delays execution for a given number of milliseconds
+ * @param ms milliseconds to delay for
+ */
+export const delay = (ms = 100) => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
