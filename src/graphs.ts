@@ -70,7 +70,7 @@ export class Point {
 
     element?: UtilSVGElement<SVGRectElement | SVGCircleElement>;
 
-    constructor(config: PointConfig) {
+    constructor(public graph: LineGraph, config: PointConfig) {
         const { x, y, colour, size, tooltip, type } = config;
         this.x = x;
         this.y = y;
@@ -160,7 +160,7 @@ export class GraphLine {
 
     element?: UtilSVGElement<SVGLineElement>;
 
-    constructor(public start: Point, public end: Point, public stroke = 1) {}
+    constructor(public graph: LineGraph, public start: Point, public end: Point, public stroke = 1) { }
 
     create() {
         const { colour, stroke } = this;
@@ -253,28 +253,26 @@ export class Serie extends List<typeof Point> {
     pushPoints(...records: PointConfig[]) {
         const { colour: serieColor, graph } = this;
 
-        const { height } = graph;
-
         return this.push(() =>
             records.map((config) => {
-                const { y, colour = serieColor } = config;
+                const { colour = serieColor } = config;
 
-                return new Point({
+                return new Point(graph, {
                     ...config,
-                    y: height - y,
                     colour,
                 });
             })
         );
     }
     create() {
-        const { items, size, colour, curved } = this;
+        const { items, size, colour, curved, graph } = this;
 
         const type: LineType = curved ? "curved" : "straight";
 
         const lines = items.map((startPoint, idx) => {
             const endPoint = items[idx + 1];
             const line = new GraphLine(
+                graph,
                 startPoint,
                 endPoint || startPoint,
                 size
