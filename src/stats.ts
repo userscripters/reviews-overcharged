@@ -3,6 +3,7 @@ import { getSuggestionsUserStats } from "./api";
 import { config } from "./config";
 import { createItem } from "./dom";
 import { getEditAuthorId, getSuggestionTotals } from "./getters";
+import { LineGraph, PointConfig, SerieConfig } from "./graphs";
 import { getRejectionCount, RejectionCount } from "./rejections";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
 import { getUserInfo } from "./users";
@@ -250,4 +251,134 @@ export const getDailyReviewerStats = async (
     });
 
     return stats;
+};
+
+/**
+ * @summary adds a sidebar with reviewer own stats
+ * @param cnf script configuration
+ */
+export const addMyStatsSidebar = async (cnf: typeof config) => {
+    const sidebar = document.querySelector(config.selectors.actions.sidebar);
+    if (!sidebar) return false;
+
+    const myStatsWrap = document.createElement("div");
+    myStatsWrap.classList.add("s-sidebarwidget", "ps-sticky", "t64", "ml24", "mt24", "ws3");
+    myStatsWrap.id = `${config.ids.sidebar.extra}-my-stats`;
+
+    const myStatsHeader = document.createElement("div");
+    myStatsHeader.classList.add("s-sidebarwidget--header");
+    myStatsHeader.textContent = "My Stats";
+
+    const myStatsGrid = document.createElement("div");
+    myStatsGrid.classList.add("grid", "fd-column");
+
+    const myStatsGridCell = document.createElement("div");
+    myStatsGridCell.classList.add("grid--cell", "p12");
+
+    myStatsGrid.append(myStatsGridCell);
+    myStatsWrap.append(myStatsHeader, myStatsGrid);
+
+    const graphWidthPx = 1024;
+
+    const graph = new LineGraph({
+        id: "reviewer-daily-stats",
+        height: 80,
+        width: 290,
+        gridColour: "var(--black-600)",
+        gridSize: 10,
+        xAxisGridLines: false
+    });
+
+
+    myStatsGridCell.append(graph.draw());
+    sidebar.append(myStatsWrap);
+
+    const commonSerieConfig: SerieConfig = {
+        curved: true
+    };
+
+    const approveSerieConfig: SerieConfig = {
+        ...commonSerieConfig,
+        colour: "var(--green-500)"
+    };
+
+    const editSerieConfig: SerieConfig = {
+        ...commonSerieConfig,
+        colour: "var(--gold)"
+    };
+
+    const rejectSerieConfig: SerieConfig = {
+        ...commonSerieConfig,
+        colour: "var(--red-500)"
+    };
+
+    const rejectEditSerieConfig: SerieConfig = {
+        ...commonSerieConfig,
+        colour: "var(--orange-500)"
+    };
+
+    const skipSerieConfig: SerieConfig = {
+        ...commonSerieConfig,
+        colour: "var(--blue-600)"
+    };
+
+    const [approveSerie, editSerie, rejectSerie, rejectEditSerie, skipSerie] = graph.pushSeries(
+        approveSerieConfig,
+        editSerieConfig,
+        rejectSerieConfig,
+        rejectEditSerieConfig,
+        skipSerieConfig
+    );
+
+    const userId = StackExchange.options.user.userId;
+    if (userId) {
+        const stats = await getDailyReviewerStats(cnf.script.name, userId);
+
+        const commonPointConfig: Omit<PointConfig, "x" | "y"> = {
+            size: 5,
+            type: "circle",
+        };
+
+        const pointPixelShiftMod = Math.floor(graphWidthPx / stats.size);
+
+        const yStep = 10;
+
+        stats.forEach((stat) => {
+            const { approve, edit, reject, skip, "reject and edit": rejectEdit } = stat;
+
+            approveSerie.pushPoints({
+                ...commonPointConfig,
+                x: approveSerie.numPoints * pointPixelShiftMod,
+                y: approve * yStep,
+            });
+
+            editSerie.pushPoints({
+                ...commonPointConfig,
+                x: editSerie.numPoints * pointPixelShiftMod,
+                y: edit * yStep,
+            });
+
+            rejectSerie.pushPoints({
+                ...commonPointConfig,
+                x: rejectSerie.numPoints * pointPixelShiftMod,
+                y: reject * yStep,
+            });
+
+            rejectEditSerie.pushPoints({
+                ...commonPointConfig,
+                x: rejectEditSerie.numPoints * pointPixelShiftMod,
+                y: rejectEdit * yStep,
+            });
+
+            skipSerie.pushPoints({
+                ...commonPointConfig,
+                x: skipSerie.numPoints * pointPixelShiftMod,
+                y: skip * yStep
+            });
+        });
+
+        graph.draw();
+    }
+
+    return true;
 };

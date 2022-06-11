@@ -5,13 +5,10 @@ import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { isTagEdit } from "./guards";
-// import { testGraph } from "./graphs";
 import { moveProgressToTabs } from "./progress";
 import { reportHandlersStatus } from "./reports";
-import { addStatsSidebar } from "./stats";
+import { addMyStatsSidebar, addStatsSidebar } from "./stats";
 import { optimizePageTitle } from "./title";
-
-// testGraph();
 
 type Handler = (
     cnf: typeof config,
@@ -21,7 +18,6 @@ type Handler = (
 type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
 
 window.addEventListener("load", async () => {
-
     let isAudit = false;
     let suggestedEditId: number | undefined;
     $(document).ajaxComplete((_, xhr) => {
@@ -80,6 +76,8 @@ window.addEventListener("load", async () => {
     const statuses = await manager.runAll(config);
 
     reportHandlersStatus(scriptName, manager.names, statuses);
+
+    await addMyStatsSidebar(config);
 
     const {
         selectors: {

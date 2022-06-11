@@ -9,6 +9,9 @@ export const API_VER = 2.2;
 export const API_KEY = "7LRwV6M6y9lsj4OFtBej3A((";
 
 export const config = {
+    script: {
+        name: "Review Overcharged"
+    },
     page: {
         suggestionId: last(location.pathname.split("/")),
     },
