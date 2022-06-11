@@ -18,8 +18,7 @@ declare global {
 }
 
 type PointType = "circle" | "rectangle";
-type LineType = "straight" | "curved";
-type GridLineType = "horizontal" | "vertical";
+type LineDirection = "horizontal" | "vertical";
 
 export type PointConfig = {
     x: number;
@@ -50,17 +49,46 @@ export type GraphConfig = {
 };
 
 type GridLineCreateOptions = {
-    type: GridLineType;
+    type: LineDirection;
     colour: string;
     lines: number;
     size: number;
-    end: number;
-    start?: number;
+    endX: number;
+    startX: number;
+    startY: number;
+    endY: number;
 };
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-export class Point {
+type DrawnDrawable<T extends Drawable<T, U>, U extends SVGElement> = T & { element: UtilSVGElement<U>; };
+
+abstract class Drawable<T extends Drawable<T, U>, U extends SVGElement> {
+    element?: UtilSVGElement<T>;
+
+    abstract create(): UtilSVGElement<T>;
+
+    abstract draw(): DrawnDrawable<T, U>;
+
+    abstract sync(): DrawnDrawable<T, U>;
+}
+
+abstract class List<T extends Constr> {
+    items: InstanceType<T>[] = [];
+
+    protected push(callback: () => InstanceType<T>[]) {
+        const { items } = this;
+        items.push(...callback());
+        return items;
+    }
+
+    protected pop(num: number) {
+        const { items } = this;
+        return items.splice(items.length - num, num);
+    }
+}
+
+export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     colour = "black";
     size = 1;
     tooltip?: string;
@@ -68,9 +96,9 @@ export class Point {
     x = 0;
     y = 0;
 
-    element?: UtilSVGElement<SVGRectElement | SVGCircleElement>;
-
     constructor(public graph: LineGraph, config: PointConfig) {
+        super();
+
         const { x, y, colour, size, tooltip, type } = config;
         this.x = x;
         this.y = y;
@@ -115,118 +143,46 @@ export class Point {
             element.append(title);
         }
 
-        this.element = element;
-
-        this.sync();
-
-        return element;
+        return this.element = element;
     }
 
     draw() {
-        const { element = this.create() } = this;
-        return element;
+        this.element || this.create();
+        return this.sync();
     }
 
     sync() {
-        const { element, x, y, middle, size, type } = this;
-        if (!element) return;
+        const { element = this.create(), graph, x, y, middle, size, type } = this;
 
         const handleMap: {
-            circle: () => UtilSVGElement<SVGCircleElement>;
-            rectangle: () => UtilSVGElement<SVGRectElement>;
+            circle: (g: LineGraph) => DrawnDrawable<Point, SVGRectElement | SVGCircleElement>;
+            rectangle: (g: LineGraph) => DrawnDrawable<Point, SVGRectElement | SVGCircleElement>;
         } = {
-            circle: () => {
+            circle: (g) => {
                 element.setAttribute("cx", x.toString());
-                element.setAttribute("cy", y.toString());
+                element.setAttribute("cy", (g.height - y).toString());
                 element.setAttribute("r", middle.toString());
-                return element;
+                return this as DrawnDrawable<Point, SVGRectElement | SVGCircleElement>;
             },
-            rectangle: () => {
+            rectangle: (g) => {
                 element.setAttribute("x", (x - middle).toString());
-                element.setAttribute("y", (y - middle).toString());
+                element.setAttribute("y", ((g.height - y) - middle).toString());
                 element.setAttribute("width", size.toString());
                 element.setAttribute("height", size.toString());
-                return element;
+                return this as DrawnDrawable<Point, SVGRectElement | SVGCircleElement>;
             },
         };
 
-        return handleMap[type]();
+        return handleMap[type](graph);
     }
 }
 
-export class GraphLine {
-    colour = "black";
-    type: LineType = "straight";
-
-    element?: UtilSVGElement<SVGLineElement>;
-
-    constructor(public graph: LineGraph, public start: Point, public end: Point, public stroke = 1) { }
-
-    create() {
-        const { colour, stroke } = this;
-
-        const line = document.createElementNS<SVGLineElement>(SVG_NS, "line");
-
-        const { style } = line;
-        style.strokeWidth = stroke.toString();
-        style.stroke = colour;
-
-        this.element = line;
-
-        this.sync();
-
-        return line;
-    }
-
-    draw() {
-        const { element = this.create() } = this;
-        return element;
-    }
-
-    resize() {
-        const { start, end } = this;
-        start.sync();
-        end.sync();
-        this.sync();
-    }
-
-    sync() {
-        const {
-            start: { x: sx, y: sy },
-            end: { x: ex, y: ey },
-            element,
-        } = this;
-        if (!element) return;
-
-        element.setAttribute("x1", sx.toString());
-        element.setAttribute("y1", sy.toString());
-
-        element.setAttribute("x2", ex.toString());
-        element.setAttribute("y2", ey.toString());
-    }
-}
-
-abstract class List<T extends Constr> {
-    items: InstanceType<T>[] = [];
-
-    protected push(callback: () => InstanceType<T>[]) {
-        const { items } = this;
-        items.push(...callback());
-        return items;
-    }
-
-    protected pop(num: number) {
-        const { items } = this;
-        return items.splice(items.length - num, num);
-    }
-}
-
-export class Serie extends List<typeof Point> {
+export class GraphSerie extends List<typeof Point> {
     curved = false;
     colour = "black";
     size = 1;
 
-    lines: GraphLine[] = [];
+    element?: UtilSVGElement<SVGGElement>;
 
     constructor(public graph: LineGraph, config: SerieConfig) {
         const { curved = false, size, colour, points } = config;
@@ -238,11 +194,6 @@ export class Serie extends List<typeof Point> {
         if (size) this.size = size;
         if (colour) this.colour = colour;
         if (points) this.pushPoints(...points);
-    }
-
-    get numLines() {
-        const { lines } = this;
-        return lines.length;
     }
 
     get numPoints() {
@@ -264,52 +215,44 @@ export class Serie extends List<typeof Point> {
             })
         );
     }
-    create() {
-        const { items, size, colour, curved, graph } = this;
+    create(): UtilSVGElement<SVGGElement> {
+        const { items, size, colour } = this;
 
-        const type: LineType = curved ? "curved" : "straight";
+        const group = document.createElementNS<SVGGElement>(SVG_NS, "g");
 
-        const lines = items.map((startPoint, idx) => {
-            const endPoint = items[idx + 1];
-            const line = new GraphLine(
-                graph,
-                startPoint,
-                endPoint || startPoint,
-                size
-            );
-            if (colour) line.colour = colour;
-            if (curved) line.type === type;
-            return line;
-        });
+        const path = document.createElementNS(SVG_NS, "path");
+        const { style } = path;
+        style.fill = "none";
+        style.stroke = colour;
+        style.strokeWidth = size.toString();
 
-        this.lines = lines;
-
-        return lines;
+        group.append(path);
+        group.append(...items.map((p) => p.create()));
+        return this.element = group;
     }
 
-    draw(): (SVGLineElement | SVGElement)[] {
-        const { items } = this;
-
-        const lines = this.create();
-
-        const drawnPoints = items.map((point) => point.draw());
-        const drawnLines = lines.map((line) => line.draw());
-        return [...drawnLines, ...drawnPoints];
+    draw() {
+        this.element || this.create();
+        this.items.forEach((point) => point.draw());
+        return this.sync();
     }
 
-    resize(newSize: number) {
-        const { lines, size: oldSize, items } = this;
+    sync(): GraphSerie & { element: UtilSVGElement<SVGGElement>; } {
+        const { element = this.create(), items, graph, curved } = this;
 
-        const mod = newSize / oldSize;
+        const { height } = graph;
 
-        items.forEach((point) => {
-            point.x *= mod;
-            point.y *= mod;
-        });
+        const d = items.slice(1).reduce((a, cur, i) => {
+            const prev = items[i];
 
-        lines.forEach((line) => line.resize());
+            const endPos = `${cur.x},${height - cur.y}`;
 
-        this.size = newSize;
+            return `${a} ${curved ? `S ${(cur.x + prev.x) / 2},${height - cur.y},${endPos}` : `L ${endPos}`}`;
+        }, `M 0,${height}`);
+
+        element.querySelector("path")?.setAttribute("d", d.trim());
+
+        return this as GraphSerie & { element: UtilSVGElement<SVGGElement>; };
     }
 }
 
@@ -320,28 +263,105 @@ type GraphAxisConfig = {
     colour?: string;
 };
 
-type MarkerAngle = "auto" | "auto-start-reverse" | number;
+type AxisLineConfig = {
+    colour?: string;
+    type?: LineDirection;
+};
 
-export class GraphAxis {
+export class AxisLine extends Drawable<AxisLine, SVGGElement> {
+    colour = "black";
+    type: LineDirection = "horizontal";
+
+    constructor(public graph: LineGraph, config: AxisLineConfig) {
+        super();
+
+        const { colour, type } = config;
+
+        if (colour) this.colour = colour;
+        if (type) this.type = type;
+    }
+
+    createPointer() {
+        const { colour } = this;
+        const pointer = document.createElementNS(SVG_NS, "path");
+        pointer.setAttribute("fill", colour);
+        return pointer;
+    }
+
+    create() {
+        const { colour } = this;
+
+        const group = document.createElementNS(SVG_NS, "g");
+
+        const pointer = this.createPointer();
+
+        const line = document.createElementNS(SVG_NS, "line");
+        const { style } = line;
+        style.stroke = colour;
+
+        group.append(line, pointer);
+        return this.element = group;
+    }
+
+    draw() {
+        this.element || this.create();
+        return this.sync();
+    }
+
+    sync(): DrawnDrawable<AxisLine, SVGGElement> {
+        const { element = this.create(), graph, type } = this;
+
+        const { width, height } = graph;
+
+        const line = element.querySelector("line");
+        const pointer = element.querySelector("path");
+
+        if (type === "horizontal") {
+            line?.setAttribute("x1", "0");
+            line?.setAttribute("x2", width.toString());
+            line?.setAttribute("y1", height.toString());
+            line?.setAttribute("y2", height.toString());
+
+            pointer?.setAttribute("d", `M ${width - 2} ${height - 2} L ${width} ${height} L ${width - 2} ${height + 2} z`);
+        }
+
+        if (type === "vertical") {
+            line?.setAttribute("x1", "0");
+            line?.setAttribute("x2", "0");
+            line?.setAttribute("y1", "0");
+            line?.setAttribute("y2", height.toString());
+
+            pointer?.setAttribute("d", "M -2 2 L 0 -2 L 2 2 z");
+        }
+
+        return this as DrawnDrawable<AxisLine, SVGGElement>;
+    }
+}
+
+export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
     makeX = true;
     makeY = true;
     size = 1;
-    colour = "black";
 
-    element?: UtilSVGElement<SVGGElement>;
+    xLine: AxisLine;
+    yLine: AxisLine;
 
-    graph?: LineGraph;
+    constructor(public graph: LineGraph, config: GraphAxisConfig) {
+        super();
 
-    constructor({
-        makeX = true,
-        makeY = true,
-        size = 1,
-        colour = "black",
-    }: GraphAxisConfig) {
+        const {
+            makeX = true,
+            makeY = true,
+            size = 1,
+            colour = "black",
+        } = config;
+
         this.makeX = makeX;
         this.makeY = makeY;
         this.size = size;
-        this.colour = colour;
+
+        this.xLine = new AxisLine(graph, { type: "horizontal", colour });
+        this.yLine = new AxisLine(graph, { type: "vertical", colour });
     }
 
     get numXmarks() {
@@ -357,24 +377,6 @@ export class GraphAxis {
         return Math.ceil(height / size) - 2; //0 and end don't count
     }
 
-    createPointer(
-        xPos: number,
-        yPos: number,
-        orientation: MarkerAngle = "auto"
-    ) {
-        const { colour } = this;
-        const marker = document.createElementNS<SVGMarkerElement>(
-            SVG_NS,
-            "marker"
-        );
-        marker.setAttribute("refX", xPos.toString());
-        marker.setAttribute("refY", yPos.toString());
-        marker.setAttribute("orient", orientation.toString());
-        const { style } = marker;
-        style.color = colour;
-        return marker;
-    }
-
     createMark() {
         // const line = document.createElementNS<SVGLineElement>(SVG_NS, "line");
     }
@@ -388,64 +390,71 @@ export class GraphAxis {
         for (let i = 1; i <= numYmarks; i++) {}
     }
 
-    createAxis(sx: number, sy: number, ex: number, ey: number) {
-        const line = document.createElementNS<SVGLineElement>(SVG_NS, "line");
-        line.setAttribute("x1", sx.toString());
-        line.setAttribute("x2", ex.toString());
-        line.setAttribute("y1", sy.toString());
-        line.setAttribute("y2", ey.toString());
-        return line;
-    }
-
     create() {
-        const { makeX, makeY, size, graph, element, colour } = this;
+        const { size, xLine, yLine } = this;
 
         this.createMarks(size); //marks should come first to be overlayed by the axis
 
-        const plane =
-            element || document.createElementNS<SVGGElement>(SVG_NS, "g");
-        const { style } = plane;
-        style.stroke = colour;
+        const element = document.createElementNS<SVGGElement>(SVG_NS, "g");
 
-        if (!graph) return plane;
+        element.append(xLine.create(), yLine.create());
 
-        const { width, height } = graph;
-
-        if (makeX) plane.append(this.createAxis(0, height, width, height));
-        if (makeY) plane.append(this.createAxis(0, height, width, 0));
-
-        return plane;
+        return this.element = element;
     }
 
     draw() {
-        const { element = this.create() } = this;
-        return (this.element = element);
+        this.element || this.create();
+
+        const { makeX, makeY, xLine, yLine } = this;
+        if (makeX) xLine.draw();
+        if (makeY) yLine.draw();
+
+        return this.sync();
     }
 
-    sync() {
-        // const { xAxis, yAxis } = this;
+    sync(): DrawnDrawable<GraphAxis, SVGGElement> {
+        // TODO: sync markers and pointers
+        return this as DrawnDrawable<GraphAxis, SVGGElement>;
     }
 }
 
-export class GraphGrid {
-    horizontal = true;
-    vertical = true;
+export type GraphGridConfig = {
+    colour?: string;
+    horizontal?: boolean;
+    size?: number;
+    vertical?: boolean;
+};
+
+export class GraphGrid extends Drawable<GraphGrid, SVGGElement> {
+    horizontal: boolean;
+    vertical: boolean;
 
     colour = "black";
+    size = 1;
 
     xLines: SVGLineElement[] = [];
     yLines: SVGLineElement[] = [];
 
-    constructor(public graph: LineGraph, public width: number, public height: number, public size = 1) { }
+    constructor(public graph: LineGraph, config: GraphGridConfig) {
+        super();
+
+        const { colour, size, horizontal = false, vertical = false } = config;
+
+        this.horizontal = horizontal;
+        this.vertical = vertical;
+
+        if (size) this.size = size;
+        if (colour) this.colour = colour;
+    }
 
     get numXcells() {
-        const { size, width } = this;
-        return Math.ceil(width / size);
+        const { size, graph } = this;
+        return Math.ceil(graph.width / size);
     }
 
     get numYcells() {
-        const { size, height } = this;
-        return Math.ceil(height / size);
+        const { size, graph } = this;
+        return Math.ceil(graph.height / size);
     }
 
     createLines({
@@ -453,29 +462,33 @@ export class GraphGrid {
         size,
         colour,
         lines,
-        end,
-        start = 0,
+        startX,
+        startY,
+        endX,
+        endY,
     }: GridLineCreateOptions) {
-        const masterLine = document.createElementNS(SVG_NS, "line");
-        const { style: ystyle } = masterLine;
-        ystyle.stroke = colour;
-
-        const isHor = type === "horizontal";
-
-        const sxAttr = isHor ? "x1" : "y1";
-        const syAttr = isHor ? "y1" : "x1";
-        const exAttr = isHor ? "x2" : "y2";
-        const eyAttr = isHor ? "y2" : "x2";
-
         const temp: SVGLineElement[] = [];
-        for (let i = 0; i < lines; i++) {
-            const pos = (size * i).toString();
+        for (let i = 1; i < lines; i++) {
+            const offset = (size * i);
 
-            const line = masterLine.cloneNode<SVGLineElement>();
-            line.setAttribute(sxAttr, pos);
-            line.setAttribute(exAttr, pos);
-            line.setAttribute(syAttr, start.toString());
-            line.setAttribute(eyAttr, end.toString());
+            const line = document.createElementNS(SVG_NS, "line");
+            const { style } = line;
+            style.stroke = colour;
+            style.strokeWidth = "0.5";
+
+            if (type === "vertical") {
+                line.setAttribute("x1", startX.toString());
+                line.setAttribute("x2", endX.toString());
+                line.setAttribute("y1", (startY - offset).toString());
+                line.setAttribute("y2", (startY - offset).toString());
+            }
+
+            if (type === "horizontal") {
+                line.setAttribute("x1", (startX + offset).toString());
+                line.setAttribute("x2", (startX + offset).toString());
+                line.setAttribute("y1", startY.toString());
+                line.setAttribute("y2", endY.toString());
+            }
 
             temp.push(line);
         }
@@ -483,7 +496,7 @@ export class GraphGrid {
         return temp;
     }
 
-    create() {
+    create(): UtilSVGElement<SVGGElement> {
         const {
             colour,
             numXcells,
@@ -496,19 +509,23 @@ export class GraphGrid {
             vertical,
         } = this;
 
-        if (!graph) return;
-
         const { height, width } = graph;
 
-        const common = { colour, size };
+        const common = {
+            colour,
+            size,
+            startX: 2,
+            endX: width - 2,
+            startY: height,
+            endY: 0,
+        };
 
         if (horizontal) {
             xLines.push(
                 ...this.createLines({
                     ...common,
-                    type: "horizontal",
-                    end: height,
                     lines: numXcells,
+                    type: "horizontal",
                 })
             );
         }
@@ -517,44 +534,37 @@ export class GraphGrid {
             yLines.push(
                 ...this.createLines({
                     ...common,
-                    type: "vertical",
-                    end: width,
                     lines: numYcells,
+                    type: "vertical",
                 })
             );
         }
 
-        //TODO: decide if we need element wrapper
-        return;
+        const group = document.createElementNS<SVGGElement>(SVG_NS, "g");
+        group.append(...xLines, ...yLines);
+        return this.element = group;
     }
 
     draw() {
-        const { xLines, yLines, graph } = this;
-
-        if (!graph || !graph.element) return;
-
-        if (!xLines.length && !yLines.length) this.create();
-
-        const { element } = graph;
-
-        element.prepend(...xLines, ...yLines);
+        this.element || this.create();
+        return this.sync();
     }
 
-    sync() {
+    sync(): DrawnDrawable<GraphGrid, SVGGElement> {
         const { xLines, yLines } = this;
 
         //TODO: move and recolour instead of redraw
-
         xLines.forEach((line) => line.remove());
         yLines.forEach((line) => line.remove());
         xLines.length = 0;
         yLines.length = 0;
+        this.create();
 
-        return this.draw();
+        return this as DrawnDrawable<GraphGrid, SVGGElement>;
     }
 }
 
-export class LineGraph extends List<typeof Serie> {
+export class LineGraph extends List<typeof GraphSerie> {
     element?: UtilSVGElement<SVGSVGElement>;
     grid: GraphGrid;
     axis: GraphAxis;
@@ -582,13 +592,14 @@ export class LineGraph extends List<typeof Serie> {
         this.width = width;
         this.height = height;
 
-        const grid = new GraphGrid(this, width, height, gridSize);
-        grid.colour = gridColour;
-        grid.horizontal = xAxisGridLines;
-        grid.vertical = yAxisGridLines;
-        this.grid = grid;
+        this.grid = new GraphGrid(this, {
+            colour: gridColour,
+            horizontal: xAxisGridLines,
+            vertical: yAxisGridLines,
+            size: gridSize
+        });
 
-        this.axis = new GraphAxis({ size, colour: axisColour });
+        this.axis = new GraphAxis(this, { size, colour: axisColour });
     }
 
     pushSeries(...records: SerieConfig[]) {
@@ -596,7 +607,7 @@ export class LineGraph extends List<typeof Serie> {
 
         return this.push(() =>
             records.map(({ points = [], ...rest }) => {
-                const serie = new Serie(this, { size, ...rest });
+                const serie = new GraphSerie(this, { size, ...rest });
                 serie.pushPoints(...points);
                 return serie;
             })
@@ -609,42 +620,34 @@ export class LineGraph extends List<typeof Serie> {
         while (element.firstChild) element.lastChild?.remove();
     }
 
-    create() {
-        const { width, height, id } = this;
+    create(): UtilSVGElement<SVGSVGElement> {
+        const { id } = this;
 
         const element = document.createElementNS<SVGSVGElement>(SVG_NS, "svg");
-        element.setAttribute("width", width.toString());
-        element.setAttribute("height", height.toString());
         element.setAttribute("id", id);
 
-        return (this.element = element);
+        return this.element = element;
     }
 
-    draw() {
+    draw(): DrawnDrawable<LineGraph, SVGSVGElement> {
         const { grid, axis, items, element = this.create() } = this;
 
         this.clean(); //tabula rasa
 
-        const drawnAxis = axis.draw(); //draw grid axis first for axis lines to cover grid;
-        element.append(drawnAxis);
+        element.append(axis.draw().element);
+        element.append(grid.draw().element);
 
-        grid.draw(); //draw grid second for points to be on top of grid;
-
-        const series = items.flatMap((serie) => serie.draw());
+        const series = items.map((serie) => serie.draw().element);
         element.append(...series);
 
-        return element;
+        return this.sync();
     }
 
-    resize(size: number) {
-        const { items } = this;
-        items.forEach((serie) => serie.resize(size));
-        this.size = size;
-    }
-
-    sync() {
-        const { grid } = this;
-
-        grid.sync(); //TODO: sync more than just grid colour
+    sync(): DrawnDrawable<LineGraph, SVGSVGElement> {
+        const { width, height, element = this.create() } = this;
+        element.setAttribute("width", width.toString());
+        element.setAttribute("height", height.toString());
+        element.setAttribute("viewBox", `-2 -2 ${width + 2} ${height + 4}`)
+        return this as DrawnDrawable<LineGraph, SVGSVGElement>;
     }
 }
