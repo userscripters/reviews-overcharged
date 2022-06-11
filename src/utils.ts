@@ -40,3 +40,13 @@ export const getReviewId = () => last(location.href.split("/"));
  * @param ms milliseconds to delay for
  */
 export const delay = (ms = 100) => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
+
+/**
+ * @summary pluralizes a string
+ * @param num number of entities represented by the countable noun
+ * @param singular singular form of the noun
+ * @param plural plural form of the noun (defaults to {@link singular} + s)
+ */
+export const pluralize = (num: number, singular: string, plural = `${singular}s`) => {
+    return `${num} ${num === 1 ? singular : plural}`;
+};
