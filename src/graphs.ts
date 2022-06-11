@@ -19,8 +19,9 @@ declare global {
 
 type PointType = "circle" | "rectangle";
 type LineType = "straight" | "curved";
+type GridLineType = "horizontal" | "vertical";
 
-type PointConfig = {
+export type PointConfig = {
     x: number;
     y: number;
     size?: number;
@@ -28,14 +29,14 @@ type PointConfig = {
     type?: PointType;
 };
 
-type SerieConfig = Partial<{
+export type SerieConfig = Partial<{
     points: PointConfig[];
     curved: boolean;
     colour: string;
     size: number;
 }>;
 
-type GraphConfig = {
+export type GraphConfig = {
     id: string;
     width: number;
     height: number;
@@ -43,10 +44,12 @@ type GraphConfig = {
     gridColour?: string;
     gridSize?: number;
     axisColour?: string;
+    xAxisGridLines?: boolean;
+    yAxisGridLines?: boolean;
 };
 
 type GridLineCreateOptions = {
-    type: "horizontal" | "vertical";
+    type: GridLineType;
     colour: string;
     lines: number;
     size: number;
@@ -199,29 +202,42 @@ abstract class List<T extends Constr> {
 }
 
 export class Serie extends List<typeof Point> {
-    curved: boolean;
+    curved = false;
     colour = "black";
     size = 1;
 
     lines: GraphLine[] = [];
 
-    graph?: LineGraph;
+    constructor(public graph: LineGraph, config: SerieConfig) {
+        const { curved = false, size, colour, points } = config;
 
-    constructor({ curved = false, size, colour }: Omit<SerieConfig, "points">) {
         super();
 
         this.curved = curved;
 
         if (size) this.size = size;
         if (colour) this.colour = colour;
+        if (points) this.pushPoints(...points);
+    }
+
+    get numLines() {
+        const { lines } = this;
+        return lines.length;
+    }
+
+    get numPoints() {
+        const { items } = this;
+        return items.length;
     }
 
     pushPoints(...records: PointConfig[]) {
-        const { colour: serieColor } = this;
+        const { colour: serieColor, graph } = this;
+
+        const { height } = graph;
 
         return this.push(() =>
             records.map(({ x, y, size = 1, colour, type }) => {
-                const point = new Point(x, y, size);
+                const point = new Point(x, height - y, size);
                 point.colour = colour || serieColor;
                 if (type) point.type = type;
                 return point;
@@ -229,7 +245,7 @@ export class Serie extends List<typeof Point> {
         );
     }
     create() {
-        const { items, size = 1, colour, curved } = this;
+        const { items, size, colour, curved } = this;
 
         const type: LineType = curved ? "curved" : "straight";
 
@@ -399,9 +415,7 @@ export class GraphGrid {
     xLines: SVGLineElement[] = [];
     yLines: SVGLineElement[] = [];
 
-    graph?: LineGraph;
-
-    constructor(public width: number, public height: number, public size = 1) {}
+    constructor(public graph: LineGraph, public width: number, public height: number, public size = 1) { }
 
     get numXcells() {
         const { size, width } = this;
@@ -537,6 +551,8 @@ export class LineGraph extends List<typeof Serie> {
         axisColour = "black",
         gridColour = "lightgrey",
         gridSize = 2,
+        xAxisGridLines = true,
+        yAxisGridLines = true,
     }: GraphConfig) {
         super();
 
@@ -545,9 +561,10 @@ export class LineGraph extends List<typeof Serie> {
         this.width = width;
         this.height = height;
 
-        const grid = new GraphGrid(width, height, gridSize);
+        const grid = new GraphGrid(this, width, height, gridSize);
         grid.colour = gridColour;
-        grid.graph = this;
+        grid.horizontal = xAxisGridLines;
+        grid.vertical = yAxisGridLines;
         this.grid = grid;
 
         this.axis = new GraphAxis({ size, colour: axisColour });
@@ -558,9 +575,8 @@ export class LineGraph extends List<typeof Serie> {
 
         return this.push(() =>
             records.map(({ points = [], ...rest }) => {
-                const serie = new Serie({ size, ...rest });
+                const serie = new Serie(this, { size, ...rest });
                 serie.pushPoints(...points);
-                serie.graph = this;
                 return serie;
             })
         );
