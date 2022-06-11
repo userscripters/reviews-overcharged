@@ -26,6 +26,7 @@ export type PointConfig = {
     y: number;
     size?: number;
     colour?: string;
+    tooltip?: string;
     type?: PointType;
 };
 
@@ -61,11 +62,24 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 export class Point {
     colour = "black";
+    size = 1;
+    tooltip?: string;
     type: PointType = "circle";
+    x = 0;
+    y = 0;
 
     element?: UtilSVGElement<SVGRectElement | SVGCircleElement>;
 
-    constructor(public x: number, public y: number, public size = 1) {}
+    constructor(config: PointConfig) {
+        const { x, y, colour, size, tooltip, type } = config;
+        this.x = x;
+        this.y = y;
+
+        if (colour) this.colour = colour;
+        if (size) this.size = size;
+        if (tooltip) this.tooltip = tooltip;
+        if (type) this.type = type;
+    }
 
     get middle() {
         const { size } = this;
@@ -94,6 +108,8 @@ export class Point {
         const element = handleMap[type]();
         const { style } = element;
         style.fill = colour;
+
+
 
         this.element = element;
 
@@ -236,11 +252,14 @@ export class Serie extends List<typeof Point> {
         const { height } = graph;
 
         return this.push(() =>
-            records.map(({ x, y, size = 1, colour, type }) => {
-                const point = new Point(x, height - y, size);
-                point.colour = colour || serieColor;
-                if (type) point.type = type;
-                return point;
+            records.map((config) => {
+                const { y, colour = serieColor } = config;
+
+                return new Point({
+                    ...config,
+                    y: height - y,
+                    colour,
+                });
             })
         );
     }
