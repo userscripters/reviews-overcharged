@@ -46,6 +46,9 @@ export type GraphConfig = {
     axisColour?: string;
     xAxisGridLines?: boolean;
     yAxisGridLines?: boolean;
+    xAxisLabelRotation?: number;
+    xAxisLabelSize?: number | string;
+    xAxisLabelOffset?: number;
 };
 
 type GridLineCreateOptions = {
@@ -261,6 +264,8 @@ type GraphAxisConfig = {
     makeY?: boolean;
     size?: number;
     colour?: string;
+    xLabelRotation?: number;
+    xLabelSize?: number | string;
 };
 
 type AxisLineConfig = {
@@ -338,6 +343,82 @@ export class AxisLine extends Drawable<AxisLine, SVGGElement> {
     }
 }
 
+export type AxisLabelConfig = {
+    colour?: string;
+    interval?: number;
+    labels?: string[];
+    rotate?: number;
+    size?: number | string;
+};
+
+export class AxisLabel extends Drawable<AxisLabel, SVGTextElement> {
+    colour = "black";
+    interval: number;
+    labels: string[] = [];
+    rotate = 0;
+    size: number | string = 10;
+
+    constructor(public graph: LineGraph, config: AxisLabelConfig = {}) {
+        super();
+
+        const {
+            colour,
+            interval = graph.grid.size,
+            labels = [],
+            rotate,
+            size,
+        } = config;
+
+        this.interval = interval;
+        this.labels = labels;
+
+        if (colour) this.colour = colour;
+        if (rotate) this.rotate = rotate;
+        if (size) this.size = size;
+    }
+
+    create() {
+        const group = document.createElementNS(SVG_NS, "g");
+        return this.element = group;
+    }
+
+    draw() {
+        this.element || this.create();
+        return this.sync();
+    }
+
+    sync(): DrawnDrawable<AxisLabel, SVGTextElement> {
+        const { colour, element = this.create(), labels, interval, graph, rotate, size } = this;
+
+        for (const child of element.children) child.remove();
+
+        const fontSize = typeof size === "number" ? `${size}px` : size;
+
+        const lineSize = 20; // TODO: make configurable
+
+        // TODO: partial updates
+        element.append(...labels.map((label, i) => {
+            const x = 0 + interval * i;
+            const y = graph.height + lineSize;
+
+            const text = document.createElementNS(SVG_NS, "text");
+            text.setAttribute("x", (x - interval / 2).toString());
+            text.setAttribute("y", y.toString());
+            text.setAttribute("font-size", fontSize);
+            text.setAttribute("fill", colour);
+
+            if (rotate) {
+                text.setAttribute("transform", `rotate(${-rotate},${x},${y})`);
+            }
+
+            text.textContent = label;
+            return text;
+        }));
+
+        return this as DrawnDrawable<AxisLabel, SVGTextElement>;
+    }
+};
+
 export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
     makeX = true;
     makeY = true;
@@ -345,6 +426,8 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
 
     xLine: AxisLine;
     yLine: AxisLine;
+
+    xLabel: AxisLabel;
 
     constructor(public graph: LineGraph, config: GraphAxisConfig) {
         super();
@@ -354,6 +437,8 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
             makeY = true,
             size = 1,
             colour = "black",
+            xLabelRotation = 0,
+            xLabelSize = 10,
         } = config;
 
         this.makeX = makeX;
@@ -362,6 +447,11 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
 
         this.xLine = new AxisLine(graph, { type: "horizontal", colour });
         this.yLine = new AxisLine(graph, { type: "vertical", colour });
+        this.xLabel = new AxisLabel(graph, {
+            colour,
+            rotate: xLabelRotation,
+            size: xLabelSize
+        });
     }
 
     get numXmarks() {
@@ -391,13 +481,13 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
     }
 
     create() {
-        const { size, xLine, yLine } = this;
+        const { size, xLabel, xLine, yLine } = this;
 
         this.createMarks(size); //marks should come first to be overlayed by the axis
 
         const element = document.createElementNS<SVGGElement>(SVG_NS, "g");
 
-        element.append(xLine.create(), yLine.create());
+        element.append(xLine.create(), yLine.create(), xLabel.create());
 
         return this.element = element;
     }
@@ -405,9 +495,16 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
     draw() {
         this.element || this.create();
 
-        const { makeX, makeY, xLine, yLine } = this;
-        if (makeX) xLine.draw();
-        if (makeY) yLine.draw();
+        const { makeX, makeY, xLine, yLine, xLabel } = this;
+
+        if (makeX) {
+            xLabel.draw();
+            xLine.draw();
+        }
+
+        if (makeY) {
+            yLine.draw();
+        }
 
         return this.sync();
     }
@@ -584,6 +681,8 @@ export class LineGraph extends List<typeof GraphSerie> {
         gridSize = 2,
         xAxisGridLines = true,
         yAxisGridLines = true,
+        xAxisLabelRotation = 0,
+        xAxisLabelSize = 10,
     }: GraphConfig) {
         super();
 
@@ -599,7 +698,12 @@ export class LineGraph extends List<typeof GraphSerie> {
             size: gridSize
         });
 
-        this.axis = new GraphAxis(this, { size, colour: axisColour });
+        this.axis = new GraphAxis(this, {
+            size,
+            colour: axisColour,
+            xLabelRotation: xAxisLabelRotation,
+            xLabelSize: xAxisLabelSize,
+        });
     }
 
     pushSeries(...records: SerieConfig[]) {
@@ -612,6 +716,13 @@ export class LineGraph extends List<typeof GraphSerie> {
                 return serie;
             })
         );
+    }
+
+    setXaxisLabels(interval: number, ...labels: string[]) {
+        const { axis: { xLabel } } = this;
+        xLabel.labels.length = 0;
+        xLabel.labels.push(...labels);
+        xLabel.interval = interval;
     }
 
     clean() {
@@ -647,7 +758,7 @@ export class LineGraph extends List<typeof GraphSerie> {
         const { width, height, element = this.create() } = this;
         element.setAttribute("width", width.toString());
         element.setAttribute("height", height.toString());
-        element.setAttribute("viewBox", `-2 -2 ${width + 2} ${height + 4}`)
+        element.setAttribute("viewBox", `-2 -2 ${width + 2} ${height + 4 + 30}`); // TODO: 30 is label line size
         return this as DrawnDrawable<LineGraph, SVGSVGElement>;
     }
 }
