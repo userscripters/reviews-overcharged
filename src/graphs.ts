@@ -751,9 +751,16 @@ export class LineGraph extends List<typeof GraphSerie> {
     }
 
     get pointXshift() {
-        const { width, items } = this;
-        const maxItems = Math.max(...items.map((serie) => serie.items.length));
-        return Math.floor(width / maxItems);
+        const { width, maxNumPoints } = this;
+        return Math.floor(width / maxNumPoints);
+    }
+
+    /**
+     * @summary gets a number of {@link Point}s in the biggest {@link GraphSerie}
+     */
+    get maxNumPoints(): number {
+        const { items } = this;
+        return Math.max(...items.map((serie) => serie.items.length));
     }
 
     pushSeries(...records: SerieConfig[]) {
