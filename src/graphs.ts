@@ -21,7 +21,6 @@ type PointType = "circle" | "rectangle";
 type LineDirection = "horizontal" | "vertical";
 
 export type PointConfig = {
-    x: number;
     y: number;
     size?: number;
     colour?: string;
@@ -94,17 +93,18 @@ abstract class List<T extends Constr> {
 
 export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     colour = "black";
+    index: number;
     size = 1;
     tooltip?: string;
     type: PointType = "circle";
-    x = 0;
-    y = 0;
+    y: number;
 
-    constructor(public graph: LineGraph, config: PointConfig) {
+    constructor(public graph: LineGraph, public serie: GraphSerie, config: PointConfig) {
         super();
 
-        const { x, y, colour, size, tooltip, type } = config;
-        this.x = x;
+        const { y, colour, size, tooltip, type } = config;
+
+        this.index = serie.numPoints;
         this.y = y;
 
         if (colour) this.colour = colour;
@@ -118,10 +118,9 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
         return size / 2;
     }
 
-    move(x: number, y: number) {
-        this.x += x;
-        this.y += y;
-        this.sync();
+    get x() {
+        const { graph, index } = this;
+        return graph.pointXshift * index;
     }
 
     create() {
@@ -213,10 +212,9 @@ export class GraphSerie extends List<typeof Point> {
         return this.push(() =>
             records.map((config) => {
                 const { colour = serieColor } = config;
-
-                return new Point(graph, {
-                    ...config,
+                return new Point(graph, this, {
                     colour,
+                    ...config
                 });
             })
         );
@@ -717,6 +715,12 @@ export class LineGraph extends List<typeof GraphSerie> {
             xLabelSize: xAxisLabelSize,
             xLabelColour: xAxisLabelColour,
         });
+    }
+
+    get pointXshift() {
+        const { width, items } = this;
+        const maxItems = Math.max(...items.map((serie) => serie.items.length));
+        return Math.floor(width / maxItems);
     }
 
     pushSeries(...records: SerieConfig[]) {
