@@ -52,17 +52,6 @@ export type GraphConfig = {
     xAxisLabelColour?: string;
 };
 
-type GridLineCreateOptions = {
-    type: LineDirection;
-    colour: string;
-    lines: number;
-    size: number;
-    endX: number;
-    startX: number;
-    startY: number;
-    endY: number;
-};
-
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 type DrawnDrawable<T extends Drawable<T, U>, U extends SVGElement> = T & { element: UtilSVGElement<U>; };
@@ -71,6 +60,11 @@ abstract class Drawable<T extends Drawable<T, U>, U extends SVGElement> {
     element?: UtilSVGElement<T>;
 
     abstract create(): UtilSVGElement<T>;
+
+    destroy(): T {
+        this.element?.remove();
+        return this as unknown as T;
+    }
 
     abstract draw(): DrawnDrawable<T, U>;
 
@@ -107,7 +101,7 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
 
         const { numPoints } = serie;
 
-        this.id = id || `${serie.id}-point-${numPoints}`;
+        this.id = id || `${serie.id}-point-${numPoints}-${Date.now()}`;
         this.y = y;
 
         if (colour) this.colour = colour;
@@ -127,7 +121,7 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     }
 
     create() {
-        const { colour, tooltip, type } = this;
+        const { colour, id, tooltip, type } = this;
 
         const handleMap: {
             circle: () => UtilSVGElement<SVGCircleElement>;
@@ -140,6 +134,8 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
         };
 
         const element = handleMap[type]();
+        element.id = id;
+
         const { style } = element;
         style.fill = colour;
 
@@ -152,13 +148,9 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
         return this.element = element;
     }
 
-    destroy(): Point {
-        this.element?.remove();
-        return this;
-    }
-
     draw() {
-        this.element || this.create();
+        const { element = this.create(), serie } = this;
+        if (!element.isConnected) serie.element?.append(element);
         return this.sync();
     }
 
@@ -273,24 +265,26 @@ export class GraphSerie extends List<typeof Point> {
     }
 
     create(): UtilSVGElement<SVGGElement> {
-        const { items, size, colour } = this;
+        const { size, colour, id } = this;
 
         const group = document.createElementNS<SVGGElement>(SVG_NS, "g");
 
         const path = document.createElementNS(SVG_NS, "path");
+        path.id = id;
+
         const { style } = path;
         style.fill = "none";
         style.stroke = colour;
         style.strokeWidth = size.toString();
 
         group.append(path);
-        group.append(...items.map((p) => p.create()));
         return this.element = group;
     }
 
     draw() {
-        this.element || this.create();
+        const { element = this.create(), graph } = this;
         this.items.forEach((point) => point.draw());
+        graph.element?.append(element);
         return this.sync();
     }
 
@@ -406,6 +400,14 @@ export class AxisLine extends Drawable<AxisLine, SVGGElement> {
 
 export type AxisLabelConfig = {
     colour?: string;
+    id?: string;
+    rotate?: number;
+    size?: number | string;
+    text: string;
+};
+
+export type AxisLabelLineConfig = {
+    colour?: string;
     interval?: number;
     labels?: string[];
     rotate?: number;
@@ -414,11 +416,76 @@ export type AxisLabelConfig = {
 
 export class AxisLabel extends Drawable<AxisLabel, SVGTextElement> {
     colour = "black";
-    labels: string[] = [];
+    id: string;
     rotate = 0;
     size: number | string = 10;
+    text: string;
 
-    constructor(public graph: LineGraph, config: AxisLabelConfig = {}) {
+    constructor(public graph: LineGraph, public line: AxisLabelLine, config: AxisLabelConfig) {
+        super();
+
+        const { colour, rotate, size, text, id } = config;
+
+        this.id = id || `label-${line.numLabels}-${Date.now()}`;
+        this.text = text;
+        this.colour = colour || line.colour;
+
+        if (rotate) this.rotate = rotate;
+        if (size) this.size = size;
+    };
+
+    get index() {
+        const { line, id } = this;
+        return line.items.findIndex((label) => label.id === id);
+    }
+
+    create(): SVGTextElement {
+        const { id } = this;
+
+        const text = document.createElementNS(SVG_NS, "text");
+        text.id = id;
+
+        return this.element = text;
+    }
+
+    draw() {
+        const { element = this.create(), line } = this;
+        if (!element.isConnected) line.element?.append(element);
+        return this.sync();
+    }
+
+    sync(): DrawnDrawable<AxisLabel, SVGTextElement> {
+        const { element = this.create(), graph, line, index, rotate, text, colour, size } = this;
+
+        const fontSize = typeof size === "number" ? `${size}px` : size;
+
+        const { lineSize, interval } = line;
+
+        const x = 0 + interval * index;
+        const y = graph.height + lineSize;
+
+        element.setAttribute("x", (x - interval / 2).toString());
+        element.setAttribute("y", y.toString());
+        element.setAttribute("font-size", fontSize);
+        element.setAttribute("fill", colour);
+
+        if (rotate) {
+            element.setAttribute("transform", `rotate(${-rotate},${x},${y})`);
+        }
+
+        element.textContent = text;
+        return this as DrawnDrawable<AxisLabel, SVGTextElement>;
+    }
+}
+
+export class AxisLabelLine extends Drawable<AxisLabelLine, SVGGElement> {
+    colour = "black";
+    items: AxisLabel[] = [];
+    rotate = 0;
+    size: number | string = 10;
+    lineSize = 20;
+
+    constructor(public graph: LineGraph, config: AxisLabelLineConfig = {}) {
         super();
 
         const {
@@ -428,7 +495,7 @@ export class AxisLabel extends Drawable<AxisLabel, SVGTextElement> {
             size,
         } = config;
 
-        this.labels = labels;
+        this.add(...labels);
 
         if (colour) this.colour = colour;
         if (rotate) this.rotate = rotate;
@@ -440,6 +507,26 @@ export class AxisLabel extends Drawable<AxisLabel, SVGTextElement> {
         return graph.pointXshift;
     }
 
+    get numLabels() {
+        const { items } = this;
+        return items.length;
+    }
+
+    add(...labels: string[]): AxisLabelLine {
+        const { items, colour, graph, size, rotate } = this;
+        items.push(...labels.map((text) => {
+            return new AxisLabel(graph, this, {
+                text, colour, size, rotate
+            });
+        }));
+        return this;
+    }
+
+    has(label: string): boolean {
+        const { items } = this;
+        return items.some((item) => item.text === label);
+    }
+
     create() {
         const group = document.createElementNS(SVG_NS, "g");
         return this.element = group;
@@ -447,38 +534,19 @@ export class AxisLabel extends Drawable<AxisLabel, SVGTextElement> {
 
     draw() {
         this.element || this.create();
+        this.items.forEach((label) => label.draw());
         return this.sync();
     }
 
-    sync(): DrawnDrawable<AxisLabel, SVGTextElement> {
-        const { colour, element = this.create(), labels, interval, graph, rotate, size } = this;
+    shift(): AxisLabel | undefined {
+        const { items } = this;
+        const label = items.shift();
+        return label?.destroy();
+    }
 
-        for (const child of element.children) child.remove();
-
-        const fontSize = typeof size === "number" ? `${size}px` : size;
-
-        const lineSize = 20; // TODO: make configurable
-
-        // TODO: partial updates
-        element.append(...labels.map((label, i) => {
-            const x = 0 + interval * i;
-            const y = graph.height + lineSize;
-
-            const text = document.createElementNS(SVG_NS, "text");
-            text.setAttribute("x", (x - interval / 2).toString());
-            text.setAttribute("y", y.toString());
-            text.setAttribute("font-size", fontSize);
-            text.setAttribute("fill", colour);
-
-            if (rotate) {
-                text.setAttribute("transform", `rotate(${-rotate},${x},${y})`);
-            }
-
-            text.textContent = label;
-            return text;
-        }));
-
-        return this as DrawnDrawable<AxisLabel, SVGTextElement>;
+    sync(): DrawnDrawable<AxisLabelLine, SVGGElement> {
+        // TODO: what to sync here?
+        return this as DrawnDrawable<AxisLabelLine, SVGGElement>;
     }
 };
 
@@ -490,7 +558,7 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
     xLine: AxisLine;
     yLine: AxisLine;
 
-    xLabel: AxisLabel;
+    xLabel: AxisLabelLine;
 
     constructor(public graph: LineGraph, config: GraphAxisConfig) {
         super();
@@ -511,7 +579,7 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
 
         this.xLine = new AxisLine(graph, { type: "horizontal", colour });
         this.yLine = new AxisLine(graph, { type: "vertical", colour });
-        this.xLabel = new AxisLabel(graph, {
+        this.xLabel = new AxisLabelLine(graph, {
             colour: xLabelColour || colour,
             rotate: xLabelRotation,
             size: xLabelSize
@@ -557,9 +625,7 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
     }
 
     draw() {
-        this.element || this.create();
-
-        const { makeX, makeY, xLine, yLine, xLabel } = this;
+        const { makeX, makeY, xLine, yLine, xLabel, element = this.create(), graph } = this;
 
         if (makeX) {
             xLabel.draw();
@@ -570,6 +636,7 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
             yLine.draw();
         }
 
+        if (!element.isConnected) graph.element?.append(element);
         return this.sync();
     }
 
@@ -586,6 +653,78 @@ export type GraphGridConfig = {
     vertical?: boolean;
 };
 
+export type GraphGridLineConfig = {
+    colour?: string;
+    direction: LineDirection;
+    id: string;
+};
+
+export class GraphGridLine extends Drawable<GraphGridLine, SVGLineElement> {
+    colour: string;
+    direction: LineDirection = "horizontal";
+    id: string;
+
+    constructor(public graph: LineGraph, public grid: GraphGrid, config: GraphGridLineConfig) {
+        super();
+
+        const { colour, direction, id } = config;
+
+        this.colour = colour || grid.colour;
+        this.direction = direction;
+        this.id = id;
+    }
+
+    get index() {
+        const { grid, direction, id } = this;
+        const collection = direction === "horizontal" ? grid.xLines : grid.yLines;
+        return collection.findIndex((line) => line.id === id);
+    }
+
+    create(): SVGLineElement {
+        const line = document.createElementNS(SVG_NS, "line");
+        return this.element = line;
+    }
+
+    draw() {
+        const { element = this.create(), grid } = this;
+        if (!element.isConnected) grid.element?.append(element);
+        return this.sync();
+    }
+
+    sync(): DrawnDrawable<GraphGridLine, SVGLineElement> {
+        const { grid, colour, direction, index, graph, element = this.create() } = this;
+
+        const offset = grid.size * (index + 1);
+
+        const { style } = element;
+        style.stroke = colour;
+        style.strokeWidth = "0.5";
+
+        const { height, width } = graph;
+
+        const startX = 2;
+        const endX = width - 2;
+        const startY = height;
+        const endY = 0;
+
+        if (direction === "vertical") {
+            element.setAttribute("x1", startX.toString());
+            element.setAttribute("x2", endX.toString());
+            element.setAttribute("y1", (startY - offset).toString());
+            element.setAttribute("y2", (startY - offset).toString());
+        }
+
+        if (direction === "horizontal") {
+            element.setAttribute("x1", (startX + offset).toString());
+            element.setAttribute("x2", (startX + offset).toString());
+            element.setAttribute("y1", startY.toString());
+            element.setAttribute("y2", endY.toString());
+        }
+
+        return this as DrawnDrawable<GraphGridLine, SVGLineElement>;
+    }
+}
+
 export class GraphGrid extends Drawable<GraphGrid, SVGGElement> {
     horizontal: boolean;
     vertical: boolean;
@@ -593,8 +732,8 @@ export class GraphGrid extends Drawable<GraphGrid, SVGGElement> {
     colour = "black";
     size = 1;
 
-    xLines: SVGLineElement[] = [];
-    yLines: SVGLineElement[] = [];
+    xLines: GraphGridLine[] = [];
+    yLines: GraphGridLine[] = [];
 
     constructor(public graph: LineGraph, config: GraphGridConfig) {
         super();
@@ -618,109 +757,50 @@ export class GraphGrid extends Drawable<GraphGrid, SVGGElement> {
         return Math.ceil(graph.height / size);
     }
 
-    createLines({
-        type,
-        size,
-        colour,
-        lines,
-        startX,
-        startY,
-        endX,
-        endY,
-    }: GridLineCreateOptions) {
-        const temp: SVGLineElement[] = [];
-        for (let i = 1; i < lines; i++) {
-            const offset = (size * i);
+    updateLines() {
+        const { xLines, yLines, numXcells, numYcells, graph, colour } = this;
+        xLines.forEach((line) => line.destroy());
+        yLines.forEach((line) => line.destroy());
 
-            const line = document.createElementNS(SVG_NS, "line");
-            const { style } = line;
-            style.stroke = colour;
-            style.strokeWidth = "0.5";
+        xLines.length = 0;
+        yLines.length = 0;
 
-            if (type === "vertical") {
-                line.setAttribute("x1", startX.toString());
-                line.setAttribute("x2", endX.toString());
-                line.setAttribute("y1", (startY - offset).toString());
-                line.setAttribute("y2", (startY - offset).toString());
-            }
-
-            if (type === "horizontal") {
-                line.setAttribute("x1", (startX + offset).toString());
-                line.setAttribute("x2", (startX + offset).toString());
-                line.setAttribute("y1", startY.toString());
-                line.setAttribute("y2", endY.toString());
-            }
-
-            temp.push(line);
+        for (let i = 1; i < numXcells; i++) {
+            xLines.push(new GraphGridLine(graph, this, {
+                id: `grid-x-line-${i}`,
+                direction: "horizontal",
+                colour,
+            }));
         }
 
-        return temp;
+        for (let i = 1; i < numYcells; i++) {
+            yLines.push(new GraphGridLine(graph, this, {
+                id: `grid-y-line-${i}`,
+                direction: "vertical",
+                colour,
+            }));
+        }
     }
 
-    create(): UtilSVGElement<SVGGElement> {
-        const {
-            colour,
-            numXcells,
-            numYcells,
-            size,
-            graph,
-            xLines,
-            yLines,
-            horizontal,
-            vertical,
-        } = this;
-
-        const { height, width } = graph;
-
-        const common = {
-            colour,
-            size,
-            startX: 2,
-            endX: width - 2,
-            startY: height,
-            endY: 0,
-        };
-
-        if (horizontal) {
-            xLines.push(
-                ...this.createLines({
-                    ...common,
-                    lines: numXcells,
-                    type: "horizontal",
-                })
-            );
-        }
-
-        if (vertical) {
-            yLines.push(
-                ...this.createLines({
-                    ...common,
-                    lines: numYcells,
-                    type: "vertical",
-                })
-            );
-        }
-
-        const group = document.createElementNS<SVGGElement>(SVG_NS, "g");
-        group.append(...xLines, ...yLines);
+    create(): SVGGElement {
+        const group = document.createElementNS(SVG_NS, "g");
         return this.element = group;
     }
 
     draw() {
-        this.element || this.create();
+        const { element = this.create(), graph, xLines, yLines, vertical, horizontal } = this;
+
+        this.updateLines(); // TODO: partial updates
+
+        if (horizontal) xLines.forEach((line) => line.draw());
+        if (vertical) yLines.forEach((line) => line.draw());
+
+        if (!element.isConnected) graph.element?.append(element);
         return this.sync();
     }
 
     sync(): DrawnDrawable<GraphGrid, SVGGElement> {
-        const { xLines, yLines } = this;
-
-        //TODO: move and recolour instead of redraw
-        xLines.forEach((line) => line.remove());
-        yLines.forEach((line) => line.remove());
-        xLines.length = 0;
-        yLines.length = 0;
-        this.create();
-
+        // TODO: what to sync here?
         return this as DrawnDrawable<GraphGrid, SVGGElement>;
     }
 }
@@ -799,21 +879,21 @@ export class LineGraph extends List<typeof GraphSerie> {
 
     hasXaxisLabel(label: string): boolean {
         const { axis: { xLabel } } = this;
-        return xLabel.labels.includes(label);
+        return xLabel.has(label);
     }
 
     addXaxisLabel(label: string): LineGraph {
         const { axis: { xLabel } } = this;
-        xLabel.labels.push(label);
+        xLabel.add(label);
         return this;
     }
 
     /**
      * @summary removes a label from the start of the X axis
      */
-    shiftXaxisLabels(): string | undefined {
+    shiftXaxisLabels(): AxisLabel | undefined {
         const { axis: { xLabel } } = this;
-        return xLabel.labels.shift();
+        return xLabel.shift();
     }
 
     /**
@@ -826,12 +906,6 @@ export class LineGraph extends List<typeof GraphSerie> {
         return this;
     }
 
-    clean() {
-        const { element } = this;
-        if (!element) return;
-        while (element.firstChild) element.lastChild?.remove();
-    }
-
     create(): UtilSVGElement<SVGSVGElement> {
         const { id } = this;
 
@@ -841,16 +915,19 @@ export class LineGraph extends List<typeof GraphSerie> {
         return this.element = element;
     }
 
+    destroy() {
+        this.element?.remove();
+        return this;
+    }
+
     draw(): DrawnDrawable<LineGraph, SVGSVGElement> {
-        const { grid, axis, items, element = this.create() } = this;
+        const { grid, axis, items } = this;
 
-        this.clean(); //tabula rasa
+        this.element || this.create();
 
-        element.append(axis.draw().element);
-        element.append(grid.draw().element);
-
-        const series = items.map((serie) => serie.draw().element);
-        element.append(...series);
+        axis.draw();
+        grid.draw();
+        items.forEach((serie) => serie.draw());
 
         return this.sync();
     }
