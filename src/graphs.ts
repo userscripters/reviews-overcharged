@@ -155,7 +155,12 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     }
 
     sync() {
-        const { element = this.create(), graph, x, y, middle, size, type } = this;
+        const { element = this.create(), graph, x, y, middle, size, type, tooltip } = this;
+
+        if (tooltip) {
+            const title = element.querySelector("title");
+            if (title) title.textContent = tooltip;
+        }
 
         const handleMap: {
             circle: (g: LineGraph) => DrawnDrawable<Point, SVGRectElement | SVGCircleElement>;
