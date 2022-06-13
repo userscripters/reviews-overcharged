@@ -48,7 +48,7 @@ export type GraphConfig = {
     yAxisGridLines?: boolean;
     xAxisLabelRotation?: number;
     xAxisLabelSize?: number | string;
-    xAxisLabelOffset?: number;
+    xAxisLabelColour?: string;
 };
 
 type GridLineCreateOptions = {
@@ -259,16 +259,17 @@ export class GraphSerie extends List<typeof Point> {
     }
 }
 
-type GraphAxisConfig = {
+export type GraphAxisConfig = {
     makeX?: boolean;
     makeY?: boolean;
     size?: number;
     colour?: string;
     xLabelRotation?: number;
     xLabelSize?: number | string;
+    xLabelColour?: string;
 };
 
-type AxisLineConfig = {
+export type AxisLineConfig = {
     colour?: string;
     type?: LineDirection;
 };
@@ -439,6 +440,7 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
             colour = "black",
             xLabelRotation = 0,
             xLabelSize = 10,
+            xLabelColour,
         } = config;
 
         this.makeX = makeX;
@@ -448,7 +450,7 @@ export class GraphAxis extends Drawable<GraphAxis, SVGGElement> {
         this.xLine = new AxisLine(graph, { type: "horizontal", colour });
         this.yLine = new AxisLine(graph, { type: "vertical", colour });
         this.xLabel = new AxisLabel(graph, {
-            colour,
+            colour: xLabelColour || colour,
             rotate: xLabelRotation,
             size: xLabelSize
         });
@@ -683,6 +685,7 @@ export class LineGraph extends List<typeof GraphSerie> {
         yAxisGridLines = true,
         xAxisLabelRotation = 0,
         xAxisLabelSize = 10,
+        xAxisLabelColour,
     }: GraphConfig) {
         super();
 
@@ -703,6 +706,7 @@ export class LineGraph extends List<typeof GraphSerie> {
             colour: axisColour,
             xLabelRotation: xAxisLabelRotation,
             xLabelSize: xAxisLabelSize,
+            xLabelColour: xAxisLabelColour,
         });
     }
 
@@ -718,7 +722,7 @@ export class LineGraph extends List<typeof GraphSerie> {
         );
     }
 
-    setXaxisLabels(interval: number, ...labels: string[]) {
+    setXaxisLabels(interval: number, labels: string[]) {
         const { axis: { xLabel } } = this;
         xLabel.labels.length = 0;
         xLabel.labels.push(...labels);
