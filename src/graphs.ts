@@ -250,6 +250,15 @@ export class GraphSerie extends List<typeof Point> {
             })
         );
     }
+
+    /**
+     * @summary removes a {@link Point} at the start of the serie
+     */
+    shift(): Point | undefined {
+        const { items } = this;
+        return items.shift();
+    }
+
     create(): UtilSVGElement<SVGGElement> {
         const { items, size, colour } = this;
 
@@ -783,6 +792,24 @@ export class LineGraph extends List<typeof GraphSerie> {
     addXaxisLabel(label: string): LineGraph {
         const { axis: { xLabel } } = this;
         xLabel.labels.push(label);
+        return this;
+    }
+
+    /**
+     * @summary removes a label from the start of the X axis
+     */
+    shiftXaxisLabels(): string | undefined {
+        const { axis: { xLabel } } = this;
+        return xLabel.labels.shift();
+    }
+
+    /**
+     * @summary shifts the whole graph by one {@link Point}
+     */
+    shift(): LineGraph {
+        const { items } = this;
+        this.shiftXaxisLabels();
+        items.forEach((serie) => serie.shift());
         return this;
     }
 
