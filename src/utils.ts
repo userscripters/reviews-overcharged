@@ -50,3 +50,11 @@ export const delay = (ms = 100) => new Promise<void>((resolve) => { setTimeout(r
 export const pluralize = (num: number, singular: string, plural = `${singular}s`) => {
     return `${num} ${num === 1 ? singular : plural}`;
 };
+
+/**
+ * @summary prepares a given {@link name} to be set on a {@link DOMStringMap}
+ * @param name property name to normalize
+ */
+export const normalizeDatasetPropName = (name: string) => {
+    return name.replace(/\s+/g, "-").toLowerCase();
+};
