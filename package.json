@@ -1,6 +1,6 @@
 {
     "name": "reviews-overcharged",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "Quality of life improvements for review queues",
     "scripts": {
         "build": "bash ./scripts/build.sh",
