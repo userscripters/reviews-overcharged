@@ -30,6 +30,7 @@ export type PointConfig = {
 };
 
 export type SerieConfig = Partial<{
+    id?: string;
     points: PointConfig[];
     curved: boolean;
     colour: string;
@@ -186,13 +187,15 @@ export class GraphSerie extends List<typeof Point> {
     size = 1;
 
     element?: UtilSVGElement<SVGGElement>;
+    id: string;
 
     constructor(public graph: LineGraph, config: SerieConfig) {
-        const { curved = false, size, colour, points } = config;
+        const { id, curved = false, size, colour, points } = config;
 
         super();
 
         this.curved = curved;
+        this.id = id || `serie-${graph.items.length}`;
 
         if (size) this.size = size;
         if (colour) this.colour = colour;
