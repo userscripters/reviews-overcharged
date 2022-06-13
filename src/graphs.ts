@@ -361,7 +361,6 @@ export type AxisLabelConfig = {
 
 export class AxisLabel extends Drawable<AxisLabel, SVGTextElement> {
     colour = "black";
-    interval: number;
     labels: string[] = [];
     rotate = 0;
     size: number | string = 10;
@@ -371,18 +370,21 @@ export class AxisLabel extends Drawable<AxisLabel, SVGTextElement> {
 
         const {
             colour,
-            interval = graph.grid.size,
             labels = [],
             rotate,
             size,
         } = config;
 
-        this.interval = interval;
         this.labels = labels;
 
         if (colour) this.colour = colour;
         if (rotate) this.rotate = rotate;
         if (size) this.size = size;
+    }
+
+    get interval() {
+        const { graph } = this;
+        return graph.pointXshift;
     }
 
     create() {
@@ -735,11 +737,15 @@ export class LineGraph extends List<typeof GraphSerie> {
         );
     }
 
-    setXaxisLabels(interval: number, labels: string[]) {
+    hasXaxisLabel(label: string): boolean {
         const { axis: { xLabel } } = this;
-        xLabel.labels.length = 0;
-        xLabel.labels.push(...labels);
-        xLabel.interval = interval;
+        return xLabel.labels.includes(label);
+    }
+
+    addXaxisLabel(label: string): LineGraph {
+        const { axis: { xLabel } } = this;
+        xLabel.labels.push(label);
+        return this;
     }
 
     clean() {
