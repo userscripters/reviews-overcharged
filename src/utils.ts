@@ -56,5 +56,5 @@ export const pluralize = (num: number, singular: string, plural = `${singular}s`
  * @param name property name to normalize
  */
 export const normalizeDatasetPropName = (name: string) => {
-    return name.replace(/\s+/g, "-").toLowerCase();
+    return name.split(/[\s-]+/g).map((s) => s[0].toUpperCase() + s.slice(1).toLowerCase()).join("");
 };
