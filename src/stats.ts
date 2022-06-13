@@ -263,7 +263,8 @@ export const getDailyReviewerStats = async (
 const updateMyStatsGraphOnReviewSubmit = (
     graph: LineGraph,
     serie: GraphSerie,
-    commonPointConfig: Omit<PointConfig, "x" | "y">
+    commonPointConfig: Omit<PointConfig, "x" | "y">,
+    action: ReviewAction,
 ) => {
     const nowUTC = new Date().toISOString().slice(0, 10);
 
@@ -275,9 +276,9 @@ const updateMyStatsGraphOnReviewSubmit = (
 
     const point = serie.pointById(pointId);
     if (point) {
-        const skip = point.y + 1;
-        point.y = skip;
-        point.tooltip = pluralize(skip, "skip") + ` on ${nowUTC}`;
+        const actions = point.y + 1;
+        point.y = actions;
+        point.tooltip = pluralize(actions, action) + ` on ${nowUTC}`;
         graph.draw();
         return;
     }
@@ -286,7 +287,7 @@ const updateMyStatsGraphOnReviewSubmit = (
         ...commonPointConfig,
         y: 1,
         id: pointId,
-        tooltip: pluralize(1, "skip") + ` on ${nowUTC}`,
+        tooltip: pluralize(1, action) + ` on ${nowUTC}`,
     });
 
     if (graph.maxNumPoints > 10) graph.shift();
@@ -431,28 +432,28 @@ export const addMyStatsSidebar = async (cnf: typeof config) => {
                 ...commonPointConfig,
                 y: approve,
                 id: `${approveSerie.id}-${date}`,
-                tooltip: pluralize(approve, "approval") + dateSuffix,
+                tooltip: pluralize(approve, "approve") + dateSuffix,
             });
 
             editSerie.pushPoints({
                 ...commonPointConfig,
                 y: edit,
                 id: `${editSerie.id}-${date}`,
-                tooltip: pluralize(edit, "improvement") + dateSuffix,
+                tooltip: pluralize(edit, "edit") + dateSuffix,
             });
 
             rejectSerie.pushPoints({
                 ...commonPointConfig,
                 y: reject,
                 id: `${rejectSerie.id}-${date}`,
-                tooltip: pluralize(reject, "rejection") + dateSuffix,
+                tooltip: pluralize(reject, "reject") + dateSuffix,
             });
 
             rejectEditSerie.pushPoints({
                 ...commonPointConfig,
                 y: rejectEdit,
                 id: `${rejectEditSerie.id}-${date}`,
-                tooltip: pluralize(rejectEdit, "reject & edit") + dateSuffix,
+                tooltip: pluralize(rejectEdit, "reject and edit") + dateSuffix,
             });
 
             skipSerie.pushPoints({
@@ -477,7 +478,7 @@ export const addMyStatsSidebar = async (cnf: typeof config) => {
                 skipBtn.dataset[normalizedReadyPropName] = "ready";
 
                 skipBtn.addEventListener("click", () => {
-                    updateMyStatsGraphOnReviewSubmit(graph, skipSerie, commonPointConfig);
+                    updateMyStatsGraphOnReviewSubmit(graph, skipSerie, commonPointConfig, "skip");
                 });
             }
         });
@@ -488,13 +489,36 @@ export const addMyStatsSidebar = async (cnf: typeof config) => {
         });
 
         const voteTypeSerieMap = new Map<string, GraphSerie>();
+        voteTypeSerieMap.set("2", approveSerie);
         voteTypeSerieMap.set("3", rejectSerie);
+        voteTypeSerieMap.set("4", editSerie);
+        voteTypeSerieMap.set("5", rejectEditSerie);
 
-        $(document).ajaxComplete((_, __, { url = "" }) => {
-            const [voteType] = safeMatch(url, /\/suggested-edit\/\d+\/vote\/(\d+)/);
-            const serie = voteTypeSerieMap.get(voteType);
-            if (serie) {
-                updateMyStatsGraphOnReviewSubmit(graph, serie, commonPointConfig);
+        const optionToActionMap: Record<string, ReviewAction | "reject and edit"> = {
+            "2": "approve",
+            "3": "reject",
+            "4": "edit",
+            "5": "reject and edit",
+        };
+
+        $(document).ajaxComplete((_, __, { url = "", data = {} }) => {
+            if (url.includes("vote")) {
+                const [voteType] = safeMatch(url, /\/suggested-edit\/\d+\/vote\/(\d+)/);
+                const action = optionToActionMap[voteType];
+                const serie = voteTypeSerieMap.get(voteType);
+                if (serie) updateMyStatsGraphOnReviewSubmit(graph, serie, commonPointConfig, action);
+                return;
+            }
+
+            if (url.includes("edit-submit")) {
+                const params = new URLSearchParams(data);
+                const isRejection = params.has("review-reject-reason");
+
+                const voteType = isRejection ? "5" : "4";
+                const action = optionToActionMap[voteType];
+                const serie = voteTypeSerieMap.get(voteType);
+                if (serie) updateMyStatsGraphOnReviewSubmit(graph, serie, commonPointConfig, action);
+                return;
             }
         });
     }
