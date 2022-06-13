@@ -2,12 +2,13 @@ import { SuggestedEdit, User } from "@userscripters/stackexchange-api-types";
 import { getSuggestionsUserStats } from "./api";
 import { config } from "./config";
 import { createItem } from "./dom";
+import { waitForSelector } from "./domUtils";
 import { getEditAuthorId, getSuggestionTotals } from "./getters";
-import { LineGraph, PointConfig, SerieConfig } from "./graphs";
+import { GraphSerie, LineGraph, PointConfig, SerieConfig } from "./graphs";
 import { getRejectionCount, RejectionCount } from "./rejections";
 import { a, br, ListOptions, p, text, ul } from "./templaters";
 import { getUserInfo } from "./users";
-import { delay, getReviewId, scase, toPercent } from "./utils";
+import { delay, getReviewId, normalizeDatasetPropName, pluralize, safeMatch, scase, toPercent } from "./utils";
 
 export type ReviewerDailyStat = {
     "approve": number,
@@ -254,6 +255,46 @@ export const getDailyReviewerStats = async (
 };
 
 /**
+ * @summary updates "my stats" graph when the user submits a review
+ * @param graph {@link LineGraph} with stats
+ * @param serie {@link GraphSerie} to update
+ * @param commonPointConfig {@link PointConfig} shared by all points
+ */
+const updateMyStatsGraphOnReviewSubmit = (
+    graph: LineGraph,
+    serie: GraphSerie,
+    commonPointConfig: Omit<PointConfig, "x" | "y">
+) => {
+    const nowUTC = new Date().toISOString().slice(0, 10);
+
+    if (!graph.hasXaxisLabel(nowUTC)) {
+        graph.addXaxisLabel(nowUTC);
+    }
+
+    const pointId = `${serie.id}-${nowUTC}`;
+
+    const point = serie.pointById(pointId);
+    if (point) {
+        const skip = point.y + 1;
+        point.y = skip;
+        point.tooltip = pluralize(skip, "skip") + ` on ${nowUTC}`;
+        graph.draw();
+        return;
+    }
+
+    serie.pushPoints({
+        ...commonPointConfig,
+        y: 1,
+        id: pointId,
+        tooltip: pluralize(1, "skip") + ` on ${nowUTC}`,
+    });
+
+    if (graph.maxNumPoints > 10) graph.shift();
+
+    graph.draw();
+}
+
+/**
  * @summary adds a sidebar with reviewer own stats
  * @param cnf script configuration
  */
@@ -263,7 +304,7 @@ export const addMyStatsSidebar = async (cnf: typeof config) => {
 
     const myStatsWrap = document.createElement("div");
     myStatsWrap.classList.add("s-sidebarwidget", "ps-sticky", "t64", "ml24", "mt24", "ws3");
-    myStatsWrap.id = `${config.ids.sidebar.extra}-my-stats`;
+    myStatsWrap.id = `${cnf.script.name}-my-stats`;
 
     const myStatsHeader = document.createElement("div");
     myStatsHeader.classList.add("s-sidebarwidget--header");
@@ -278,20 +319,42 @@ export const addMyStatsSidebar = async (cnf: typeof config) => {
     myStatsGrid.append(myStatsGridCell);
     myStatsWrap.append(myStatsHeader, myStatsGrid);
 
-    const graphWidthPx = 1024;
+    const gridSizePx = 20;
+    const graphWidthPx = 290;
+    const graphHeightPx = 160;
 
     const graph = new LineGraph({
         id: "reviewer-daily-stats",
-        height: 80,
-        width: 290,
+        height: graphHeightPx + gridSizePx,
+        width: graphWidthPx,
         gridColour: "var(--black-600)",
-        gridSize: 10,
-        xAxisGridLines: false
+        gridSize: gridSizePx,
+        xAxisGridLines: false,
+        xAxisLabelRotation: 30,
+        xAxisLabelSize: 8,
+        xAxisLabelColour: "var(--black-400)",
     });
 
-
-    myStatsGridCell.append(graph.draw());
+    myStatsGridCell.append(graph.draw().element);
     sidebar.append(myStatsWrap);
+
+    // SE review queues rip the whole sidebar out on every submit
+    const mo = new MutationObserver((records) => {
+        records.map(async ({ removedNodes }) => {
+            if ([...removedNodes].includes(myStatsWrap)) {
+                const [newSidebar] = await waitForSelector(
+                    `[id^=${cnf.ids.sidebar.extra}]`
+                );
+
+                newSidebar.after(myStatsWrap);
+            }
+        });
+    });
+
+    mo.observe(document, {
+        childList: true,
+        subtree: true,
+    });
 
     const commonSerieConfig: SerieConfig = {
         curved: true
@@ -299,27 +362,32 @@ export const addMyStatsSidebar = async (cnf: typeof config) => {
 
     const approveSerieConfig: SerieConfig = {
         ...commonSerieConfig,
-        colour: "var(--green-500)"
+        colour: "var(--green-500)",
+        id: "approve",
     };
 
     const editSerieConfig: SerieConfig = {
         ...commonSerieConfig,
-        colour: "var(--gold)"
+        colour: "var(--gold)",
+        id: "edit",
     };
 
     const rejectSerieConfig: SerieConfig = {
         ...commonSerieConfig,
-        colour: "var(--red-500)"
+        colour: "var(--red-500)",
+        id: "reject",
     };
 
     const rejectEditSerieConfig: SerieConfig = {
         ...commonSerieConfig,
-        colour: "var(--orange-500)"
+        colour: "var(--orange-500)",
+        id: "reject-edit",
     };
 
     const skipSerieConfig: SerieConfig = {
         ...commonSerieConfig,
-        colour: "var(--blue-600)"
+        colour: "var(--blue-600)",
+        id: "skip",
     };
 
     const [approveSerie, editSerie, rejectSerie, rejectEditSerie, skipSerie] = graph.pushSeries(
@@ -334,50 +402,101 @@ export const addMyStatsSidebar = async (cnf: typeof config) => {
     if (userId) {
         const stats = await getDailyReviewerStats(cnf.script.name, userId);
 
+        const ascSortedStats = [...stats].sort(([adate], [bdate]) => adate < bdate ? -1 : 1);
+
         const commonPointConfig: Omit<PointConfig, "x" | "y"> = {
             size: 5,
             type: "circle",
         };
 
-        const pointPixelShiftMod = Math.floor(graphWidthPx / stats.size);
+        let maxYpos = graphHeightPx;
 
-        const yStep = 10;
+        ascSortedStats.forEach(([date, stat]) => {
+            graph.addXaxisLabel(date);
 
-        stats.forEach((stat) => {
             const { approve, edit, reject, skip, "reject and edit": rejectEdit } = stat;
+
+            maxYpos = Math.max(
+                maxYpos,
+                approve,
+                edit,
+                reject,
+                skip,
+                rejectEdit
+            );
+
+            const dateSuffix = ` on ${date}`;
 
             approveSerie.pushPoints({
                 ...commonPointConfig,
-                x: approveSerie.numPoints * pointPixelShiftMod,
-                y: approve * yStep,
+                y: approve,
+                id: `${approveSerie.id}-${date}`,
+                tooltip: pluralize(approve, "approval") + dateSuffix,
             });
 
             editSerie.pushPoints({
                 ...commonPointConfig,
-                x: editSerie.numPoints * pointPixelShiftMod,
-                y: edit * yStep,
+                y: edit,
+                id: `${editSerie.id}-${date}`,
+                tooltip: pluralize(edit, "improvement") + dateSuffix,
             });
 
             rejectSerie.pushPoints({
                 ...commonPointConfig,
-                x: rejectSerie.numPoints * pointPixelShiftMod,
-                y: reject * yStep,
+                y: reject,
+                id: `${rejectSerie.id}-${date}`,
+                tooltip: pluralize(reject, "rejection") + dateSuffix,
             });
 
             rejectEditSerie.pushPoints({
                 ...commonPointConfig,
-                x: rejectEditSerie.numPoints * pointPixelShiftMod,
-                y: rejectEdit * yStep,
+                y: rejectEdit,
+                id: `${rejectEditSerie.id}-${date}`,
+                tooltip: pluralize(rejectEdit, "reject & edit") + dateSuffix,
             });
 
             skipSerie.pushPoints({
                 ...commonPointConfig,
-                x: skipSerie.numPoints * pointPixelShiftMod,
-                y: skip * yStep
+                y: skip,
+                id: `${skipSerie.id}-${date}`,
+                tooltip: pluralize(skip, "skip") + dateSuffix,
             });
         });
 
+        graph.height = maxYpos + gridSizePx;
         graph.draw();
+
+        const normalizedReadyPropName = normalizeDatasetPropName(
+            `${cnf.script.name}-graph-skip-serie`
+        );
+
+        const obs = new MutationObserver(() => {
+            const skipBtn = document.querySelector<HTMLButtonElement>(cnf.selectors.buttons.skip);
+            const isReady = skipBtn?.dataset[normalizedReadyPropName] === "ready";
+            if (skipBtn && !isReady) {
+                skipBtn.dataset[normalizedReadyPropName] = "ready";
+
+                skipBtn.addEventListener("click", () => {
+                    updateMyStatsGraphOnReviewSubmit(graph, skipSerie, commonPointConfig);
+                });
+            }
+        });
+
+        obs.observe(document, {
+            childList: true,
+            subtree: true,
+        });
+
+        const voteTypeSerieMap = new Map<string, GraphSerie>();
+        voteTypeSerieMap.set("3", rejectSerie);
+
+        $(document).ajaxComplete((_, __, { url = "" }) => {
+            const [voteType] = safeMatch(url, /\/suggested-edit\/\d+\/vote\/(\d+)/);
+            const serie = voteTypeSerieMap.get(voteType);
+            if (serie) {
+                updateMyStatsGraphOnReviewSubmit(graph, serie, commonPointConfig);
+            }
+        });
     }
 
     return true;

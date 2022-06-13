@@ -54,7 +54,7 @@ export const config = {
         },
         buttons: {
             submit: ".js-review-submit",
-            skip: ".js-review-actions:not(.d-none) .js-action-button[value=1]",
+            skip: ".js-review-actions:not(.d-none) .js-action-button[value='1']",
             close: ".s-modal--close",
         },
         reviews: {
