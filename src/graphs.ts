@@ -21,6 +21,7 @@ type PointType = "circle" | "rectangle";
 type LineDirection = "horizontal" | "vertical";
 
 export type PointConfig = {
+    id?: string;
     y: number;
     size?: number;
     colour?: string;
@@ -93,6 +94,7 @@ abstract class List<T extends Constr> {
 
 export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     colour = "black";
+    id: string;
     index: number;
     size = 1;
     tooltip?: string;
@@ -102,9 +104,12 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     constructor(public graph: LineGraph, public serie: GraphSerie, config: PointConfig) {
         super();
 
-        const { y, colour, size, tooltip, type } = config;
+        const { y, colour, size, tooltip, type, id } = config;
 
-        this.index = serie.numPoints;
+        const { numPoints } = serie;
+
+        this.id = id || `${serie.id}-point-${numPoints}`;
+        this.index = numPoints;
         this.y = y;
 
         if (colour) this.colour = colour;
@@ -204,6 +209,32 @@ export class GraphSerie extends List<typeof Point> {
     get numPoints() {
         const { items } = this;
         return items.length;
+    }
+
+    /**
+     * @summary gets last {@link Point} in the serie
+     */
+    get lastPoint(): Point | undefined {
+        const { numPoints } = this;
+        return this.pointAt(numPoints - 1);
+    }
+
+    /**
+     * @summary gets a {@link Point} at at {@link index}
+     * @param index index to get the {@link Point} at
+     */
+    pointAt(index: number): Point | undefined {
+        const { items } = this;
+        return items.find((point) => point.index === index);
+    }
+
+    /**
+     * @summary gets a {@link Point} by its {@link Point.id}
+     * @param id {@link Point.id} to lookup
+     */
+    pointById(id: string) {
+        const { items } = this;
+        return items.find((point) => point.id === id);
     }
 
     pushPoints(...records: PointConfig[]) {
