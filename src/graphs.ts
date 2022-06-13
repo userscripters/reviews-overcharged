@@ -95,7 +95,6 @@ abstract class List<T extends Constr> {
 export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     colour = "black";
     id: string;
-    index: number;
     size = 1;
     tooltip?: string;
     type: PointType = "circle";
@@ -109,7 +108,6 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
         const { numPoints } = serie;
 
         this.id = id || `${serie.id}-point-${numPoints}`;
-        this.index = numPoints;
         this.y = y;
 
         if (colour) this.colour = colour;
@@ -124,8 +122,8 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
     }
 
     get x() {
-        const { graph, index } = this;
-        return graph.pointXshift * index;
+        const { graph, serie, id } = this;
+        return graph.pointXshift * serie.indexOf(id);
     }
 
     create() {
@@ -152,6 +150,11 @@ export class Point extends Drawable<Point, SVGRectElement | SVGCircleElement> {
         }
 
         return this.element = element;
+    }
+
+    destroy(): Point {
+        this.element?.remove();
+        return this;
     }
 
     draw() {
@@ -220,12 +223,21 @@ export class GraphSerie extends List<typeof Point> {
     }
 
     /**
+     * @summary gets an index of a {@link Point}
+     * @param id {@link Point.id} of the {@link Point}
+     */
+    indexOf(id: string) {
+        const { items } = this;
+        return items.findIndex((p) => p.id === id);
+    }
+
+    /**
      * @summary gets a {@link Point} at at {@link index}
      * @param index index to get the {@link Point} at
      */
     pointAt(index: number): Point | undefined {
         const { items } = this;
-        return items.find((point) => point.index === index);
+        return items[index];
     }
 
     /**
@@ -256,7 +268,8 @@ export class GraphSerie extends List<typeof Point> {
      */
     shift(): Point | undefined {
         const { items } = this;
-        return items.shift();
+        const point = items.shift();
+        return point?.destroy();
     }
 
     create(): UtilSVGElement<SVGGElement> {
