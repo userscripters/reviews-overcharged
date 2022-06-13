@@ -246,15 +246,21 @@ export class GraphSerie extends List<typeof Point> {
     sync(): GraphSerie & { element: UtilSVGElement<SVGGElement>; } {
         const { element = this.create(), items, graph, curved } = this;
 
+        if (items.length < 2) {
+            return this as GraphSerie & { element: UtilSVGElement<SVGGElement>; };
+        }
+
         const { height } = graph;
 
-        const d = items.slice(1).reduce((a, cur, i) => {
+        const [first, ...rest] = items;
+
+        const d = rest.reduce((a, cur, i) => {
             const prev = items[i];
 
             const endPos = `${cur.x},${height - cur.y}`;
 
             return `${a} ${curved ? `S ${(cur.x + prev.x) / 2},${height - cur.y},${endPos}` : `L ${endPos}`}`;
-        }, `M 0,${height}`);
+        }, `M ${first.x},${height - first.y}`);
 
         element.querySelector("path")?.setAttribute("d", d.trim());
 
