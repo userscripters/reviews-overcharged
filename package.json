@@ -4,6 +4,7 @@
     "description": "Quality of life improvements for review queues",
     "scripts": {
         "build": "bash ./scripts/build.sh",
+        "test": "echo No tests found && exit 0",
         "clean": "rm -rf dist/*",
         "headers-tm": "bash ./scripts/headers.sh",
         "lint": "eslint src --fix --ext .js,.ts",
