@@ -4,13 +4,12 @@ import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { isTagEdit } from "./guards";
+import { CleanerManager } from "./CleanerManager";
 import { HandlerManager } from "./HandlerManager";
 import { moveProgressToTabs } from "./progress";
 import { reportHandlersStatus } from "./reports";
 import { addMyStatsSidebar, addStatsSidebar } from "./stats";
 import { optimizePageTitle } from "./title";
-
-type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
 
 window.addEventListener("load", async () => {
     let isAudit = false;
@@ -24,6 +23,10 @@ window.addEventListener("load", async () => {
     });
 
     const scriptName = "ReviewOvercharged";
+
+    const cleaner = new CleanerManager({
+        removeExistingSidebars,
+    });
 
     const manager = new HandlerManager({
         moveProgressToTabs,
@@ -49,8 +52,6 @@ window.addEventListener("load", async () => {
 
     //modules + ES5 leads to .name being inaccessible
     Object.assign(manager.handlers, { addStatsSidebar });
-
-    const cleanups: Cleaner[] = [removeExistingSidebars];
 
     const statuses = await manager.runAll(config);
 
@@ -81,7 +82,7 @@ window.addEventListener("load", async () => {
         reportHandlersStatus(scriptName, manager.names, statuses);
         if (isAudit) addAuditNotification(config);
 
-        await Promise.all(cleanups.map((handler) => handler(config)));
+        await cleaner.runAll(config);
     });
 
     obs.observe(document, { subtree: true, childList: true });
