@@ -53,7 +53,7 @@ window.addEventListener("load", async () => {
     //modules + ES5 leads to .name being inaccessible
     Object.assign(manager.handlers, { addStatsSidebar });
 
-    const statuses = await manager.runAll(config);
+    const statuses = await manager.runAll(config, item);
 
     reportHandlersStatus(scriptName, manager.names, statuses);
 

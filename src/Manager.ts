@@ -1,6 +1,4 @@
-import type { config } from "./config";
-
-export abstract class Manager<T extends Function> {
+export abstract class Manager<T extends (...args: any[]) => any> {
     constructor(public handlers: Record<string, T>) {}
 
     get names() {
@@ -13,8 +11,8 @@ export abstract class Manager<T extends Function> {
         return Object.values(handlers);
     }
 
-    runAll(cnf: typeof config) {
+    runAll(...args: Parameters<T>) {
         const { actors } = this;
-        return Promise.all(actors.map((v) => v(cnf)));
+        return Promise.all(actors.map((v) => v(...args)));
     }
 }
