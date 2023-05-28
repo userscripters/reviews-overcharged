@@ -1,6 +1,6 @@
-import { config } from "./config";
-import { createGridCell } from "./dom";
-import { handleMatchFailure } from "./utils";
+import { config } from "../config";
+import { createGridCell } from "../dom";
+import { handleMatchFailure } from "../utils";
 
 export const removeTitleLines = (cnf: typeof config, wrapper?: Element) =>
     (wrapper || document)

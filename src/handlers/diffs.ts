@@ -1,4 +1,4 @@
-import { config } from "./config";
+import { config } from "../config";
 
 export const decolorDiff = (cnf: typeof config) => {
     const { added, deleted } = cnf.selectors.diffs;

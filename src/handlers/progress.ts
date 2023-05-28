@@ -1,7 +1,7 @@
-import { selectActions } from "./actions";
-import { config } from "./config";
-import { goParentUp } from "./domUtils";
-import { toPercent, trimNumericString } from "./utils";
+import { selectActions } from "../actions";
+import { config } from "../config";
+import { goParentUp } from "../domUtils";
+import { toPercent, trimNumericString } from "../utils";
 
 export const hideProgressBar = (
     { classes: { visibility } }: typeof config,

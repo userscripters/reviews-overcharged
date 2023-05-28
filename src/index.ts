@@ -2,14 +2,14 @@ import { getSuggestionInfo } from "./api";
 import { addAuditNotification } from "./audits";
 import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
-import { decolorDiff } from "./diffs";
+import { decolorDiff } from "./handlers/diffs";
 import { isTagEdit } from "./guards";
 import { CleanerManager } from "./CleanerManager";
 import { HandlerManager } from "./HandlerManager";
-import { moveProgressToTabs } from "./progress";
+import { moveProgressToTabs } from "./handlers/progress";
 import { reportHandlersStatus } from "./reports";
 import { addMyStatsSidebar, addStatsSidebar } from "./stats";
-import { optimizePageTitle } from "./title";
+import { optimizePageTitle } from "./handlers/title";
 
 window.addEventListener("load", async () => {
     let isAudit = false;
