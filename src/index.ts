@@ -1,19 +1,14 @@
-import { SuggestedEdit } from "@userscripters/stackexchange-api-types";
 import { getSuggestionInfo } from "./api";
 import { addAuditNotification } from "./audits";
 import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { isTagEdit } from "./guards";
+import { HandlerManager } from "./HandleManager";
 import { moveProgressToTabs } from "./progress";
 import { reportHandlersStatus } from "./reports";
 import { addMyStatsSidebar, addStatsSidebar } from "./stats";
 import { optimizePageTitle } from "./title";
-
-type Handler = (
-    cnf: typeof config,
-    info?: SuggestedEdit
-) => boolean | Promise<boolean>;
 
 type Cleaner = (cnf: typeof config) => boolean | Promise<boolean>;
 
@@ -30,25 +25,6 @@ window.addEventListener("load", async () => {
 
     const scriptName = "ReviewOvercharged";
 
-    class HandlerManager {
-        constructor(public handlers: Record<string, Handler>) { }
-
-        get names() {
-            const { handlers } = this;
-            return Object.keys(handlers);
-        }
-
-        get actors() {
-            const { handlers } = this;
-            return Object.values(handlers);
-        }
-
-        runAll(cnf: typeof config) {
-            const { actors } = this;
-            return Promise.all(actors.map((v) => v(cnf)));
-        }
-    }
-
     const manager = new HandlerManager({
         moveProgressToTabs,
         optimizePageTitle,
@@ -57,7 +33,10 @@ window.addEventListener("load", async () => {
 
     const isTagItem = await isTagEdit(config);
 
-    const item = isTagItem || !suggestedEditId ? void 0 : await getSuggestionInfo(suggestedEditId);
+    const item =
+        isTagItem || !suggestedEditId
+            ? void 0
+            : await getSuggestionInfo(suggestedEditId);
 
     console.debug(`[${scriptName}] suggested edit id: ${suggestedEditId}`);
 
