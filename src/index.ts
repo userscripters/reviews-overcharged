@@ -4,7 +4,7 @@ import { removeExistingSidebars } from "./cleanup";
 import { config } from "./config";
 import { decolorDiff } from "./diffs";
 import { isTagEdit } from "./guards";
-import { HandlerManager } from "./HandleManager";
+import { HandlerManager } from "./HandlerManager";
 import { moveProgressToTabs } from "./progress";
 import { reportHandlersStatus } from "./reports";
 import { addMyStatsSidebar, addStatsSidebar } from "./stats";
