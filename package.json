@@ -35,7 +35,7 @@
         "@types/mocha": "^10.0.1",
         "@types/vinyl-buffer": "^1.0.1",
         "@types/vinyl-source-stream": "^0.0.31",
-        "@typescript-eslint/eslint-plugin": "^6.4.1",
+        "@typescript-eslint/eslint-plugin": "^6.5.0",
         "@typescript-eslint/parser": "^6.4.1",
         "@userscripters/generate-headers": "^3.4.0",
         "@userscripters/generate-readme": "^2.3.1",
