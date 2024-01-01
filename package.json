@@ -43,7 +43,7 @@
         "@userscripters/stackexchange-api-types": "^3.4.0",
         "@userscripters/stackexchange-global-types": "^2.7.0",
         "browserify": "^17.0.0",
-        "chai": "^4.3.10",
+        "chai": "^5.0.0",
         "chai-as-promised": "^7.1.1",
         "del": "^7.1.0",
         "eslint": "^8.56.0",
