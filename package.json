@@ -37,7 +37,7 @@
         "@types/vinyl-source-stream": "^0.0.34",
         "@typescript-eslint/eslint-plugin": "^7.18.0",
         "@typescript-eslint/parser": "^7.18.0",
-        "@userscripters/generate-headers": "^3.4.2",
+        "@userscripters/generate-headers": "^3.5.0",
         "@userscripters/generate-readme": "^3.0.2",
         "@userscripters/generate-stackapps": "^1.3.0",
         "@userscripters/stackexchange-api-types": "^3.4.0",
