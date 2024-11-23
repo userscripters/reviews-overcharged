@@ -32,7 +32,7 @@
         "@types/gulp-concat": "^0.0.37",
         "@types/gulp-rename": "^2.0.6",
         "@types/gulp-uglify": "^3.0.11",
-        "@types/mocha": "^10.0.9",
+        "@types/mocha": "^10.0.10",
         "@types/vinyl-buffer": "^1.0.3",
         "@types/vinyl-source-stream": "^0.0.34",
         "@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -54,7 +54,7 @@
         "mocha": "^10.8.2",
         "ts-node": "^10.9.2",
         "tsify": "^5.0.4",
-        "typescript": "^5.6.3",
+        "typescript": "^5.7.2",
         "vinyl-buffer": "^1.0.1",
         "vinyl-source-stream": "^2.0.0"
     },
