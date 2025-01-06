@@ -45,7 +45,7 @@
         "browserify": "^17.0.1",
         "chai": "^4.3.10",
         "chai-as-promised": "^7.1.2",
-        "del": "^7.1.0",
+        "del": "^8.0.0",
         "eslint": "^8.53.0",
         "gulp": "^5.0.0",
         "gulp-autoprefixer": "^9.0.0",
