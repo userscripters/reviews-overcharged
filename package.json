@@ -55,7 +55,7 @@
         "mocha": "^10.2.0",
         "ts-node": "^10.9.2",
         "tsify": "^5.0.4",
-        "typescript": "^5.2.2",
+        "typescript": "^5.7.2",
         "vinyl-buffer": "^1.0.1",
         "vinyl-source-stream": "^2.0.0"
     },
