@@ -27,7 +27,7 @@
     "devDependencies": {
         "@types/browserify": "^12.0.40",
         "@types/chai": "^5.0.1",
-        "@types/chai-as-promised": "^7.1.8",
+        "@types/chai-as-promised": "^8.0.1",
         "@types/gulp": "^4.0.17",
         "@types/gulp-concat": "^0.0.37",
         "@types/gulp-rename": "^2.0.6",
@@ -44,7 +44,7 @@
         "@userscripters/stackexchange-global-types": "^2.8.2",
         "browserify": "^17.0.1",
         "chai": "^5.1.2",
-        "chai-as-promised": "^7.1.2",
+        "chai-as-promised": "^8.0.1",
         "del": "^8.0.0",
         "eslint": "^8.53.0",
         "gulp": "^5.0.0",
